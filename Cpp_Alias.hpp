@@ -12,6 +12,18 @@ This merely removes the need to use operators I don't like and wraps them in eas
 
 #pragma once
 
+#include <algorithm>
+#include <cstdarg>
+#include <exception>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+
+
 // Macros
 
 #define sfn \
@@ -78,4 +90,13 @@ sfn Dref(ptr<Type> _type) -> Ref(Type)
 sfn Exit(ExitCode _code)
 {
 	exit(int(_code));
+}
+
+// Error Stuff
+
+sfn ErrorRuntime(const Ref(std::runtime_error) _error)
+{
+	std::cout << "Runtime error occurred: " << _error.what() << std::endl;
+
+	return;
 }

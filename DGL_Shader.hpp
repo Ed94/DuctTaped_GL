@@ -1,12 +1,10 @@
 #pragma once
 
-// C++
-#include <cstdarg>
-
 //DGL
 #include "DGL_FundamentalTypes.hpp"
 #include "DGL_MiscTypes.hpp"
 #include "DGL_Enum.hpp"
+#include "DGL_Space.hpp"
 
 
 
@@ -36,7 +34,47 @@ namespace GL
 		"}";
 
 
+	// Default Shaders
+
+	ID<ShaderProgram> RawShader               ,
+		              SimpleShader            ,
+		              SimpleShader_Transformed ;
+
+	ID<CoordSpace> ScreenSpaceVarID;
+
+
+	// Forward Declarations
+
+	sfn GetShaderInfo(ID<Shader> _shader       , gSize       _logLength        , ptr<gSize> _infoLengthRef      , RawString<gChar> _infoLogRef) -> void;
+	sfn QueryShader  (ID<Shader> _shaderToQuery, EShaderInfo _shaderInfoDesired, ptr<gInt > _requestedInfoObject                              ) -> void;
+	sfn MakeShader(Ref(ID<Shader>) _shaderIDHolder, EShaderType _typeOfShader, uInt64 _numberOfStringElements, ptr<RawString<const gChar>> _sourceCode, ptr<const gInt> _lengthsOfStrings) -> void;
+	sfn MakeShaderProgram(Ref(ID<ShaderProgram>) _shaderProgramIDHolder, const ID<Shader> _vertexShader, const ID<Shader> _fragShader) -> void;
+
+
+
 	// Functions
+
+	sfn ActiveUniforms(ID<Shader> _shaderToQueryForUniforms) -> GLint
+	{
+		GLint uniforms;
+
+		glGetProgramiv(_shaderToQueryForUniforms, GL_ACTIVE_UNIFORMS, &uniforms);
+
+		for (int i = 0; i < uniforms; i++)
+		{
+			int name_len = -1, num = -1;
+
+			GLenum type = GL_ZERO;
+
+			char name[100];
+
+			glGetActiveUniform(_shaderToQueryForUniforms, GLuint(i), sizeof(name) - 1, &name_len, &num, &type, name);
+
+			name[name_len] = 0;
+		}
+
+		return uniforms;
+	}
 
 	sfn AttachShader(ID<ShaderProgram> _shaderProgram, ID<Shader> _shaderToAttach)
 	{
@@ -52,9 +90,33 @@ namespace GL
 		return;
 	}
 
-	sfn CompileShader(ID<Shader> _shaderToCompile)
+	sfn CompileShader(const ID<Shader> _shaderToCompile)
 	{
 		glCompileShader(_shaderToCompile);
+
+		gInt Result = gInt(EBool::False);
+
+		gSize InfoLogLength;
+
+		QueryShader(_shaderToCompile, EShaderInfo::CompileStatus, Address(Result));
+
+		if (!Result)
+		{
+			QueryShader(_shaderToCompile, EShaderInfo::InfoLogLength, Address(InfoLogLength));
+
+			if (InfoLogLength > 0)
+			{
+				std::vector<char> ErrorMessage(InfoLogLength + 1);
+
+				GetShaderInfo(_shaderToCompile, InfoLogLength, nullptr, Address(ErrorMessage.at(0)));
+
+				throw std::runtime_error(Address(ErrorMessage.at(0)));
+			}
+			else
+			{
+				throw std::runtime_error("Shader compilation failed and did not get a proper info log.");
+			}
+		}
 
 		return;
 	}
@@ -75,7 +137,31 @@ namespace GL
 
 		return;
 	}
-	 
+
+	sfn DetachShader(ID<ShaderProgram> _shaderProgram, ID<Shader> _shaderToDetach)
+	{
+		glDetachShader(_shaderProgram, _shaderToDetach);
+
+		return;
+	}
+
+	sfn GetShaderInfo(ID<Shader> _shader, gSize _logLength, ptr<gSize> _infoLengthRef, RawString<gChar> _infoLogRef) -> void
+	{
+		glGetShaderInfoLog(_shader, _logLength, _infoLengthRef, _infoLogRef);
+
+		return;
+	}
+
+	sfn GetShaderProgramInfo(ID<ShaderProgram> _shaderProgram, gSize _logLength, ptr<gSize> _infoLengthRef, RawString<gChar> _infoLogRef) -> void
+	{
+		glGetProgramInfoLog(_shaderProgram, _logLength, _infoLengthRef, _infoLogRef);
+	}
+
+	sfn GetUniformVariable(const ID<ShaderProgram> _programID, RawString<const char> _nameOfVariable) -> ID<Matrix>
+	{
+		return glGetUniformLocation(_programID, _nameOfVariable);
+	}
+
 	sfn LinkProgramShader(ID<ShaderProgram> _shaderProgramToLink)
 	{
 		glLinkProgram(_shaderProgramToLink);
@@ -83,15 +169,127 @@ namespace GL
 		return;
 	}
 
-	sfn UseProgramShader(ID<ShaderProgram> _shaderProgramToUse)
+	sfn QueryShader(ID<Shader> _shaderToQuery, EShaderInfo _shaderInfoDesired, ptr<gInt> _requestedInfoObject) -> void
 	{
-		glUseProgram(_shaderProgramToUse);
-
-		return;
+		glGetShaderiv(_shaderToQuery, GLenum(_shaderInfoDesired), _requestedInfoObject);
 	}
 
+	sfn QueryShaderProgram(ID<ShaderProgram> _shaderToQuery, EShaderProgramInfo _shaderProgramInfoDesired, ptr<gInt> _requestedInfoObject) -> void
+	{
+		glGetProgramiv(_shaderToQuery, GLenum(_shaderProgramInfoDesired), _requestedInfoObject);
+	}
 
-	// Raw Tape
+	sfn LoadShaders(RawString<const char> _vertexShaderFilePath, RawString<const char> _fragmentShaderFilePath) -> ID<ShaderProgram>
+	{
+		using std::cout        ;
+		using std::endl        ;
+		using std::ifstream    ;
+		using std::ios         ;
+		using std::string      ;
+		using std::stringstream;
+		using std::vector      ;
+
+
+		string   vertexShaderCode        ;
+		string   fragmentShaderCode      ;
+
+		ifstream vertexShaderFileStream  ;
+		ifstream fragmentShaderFileStream;
+
+		vertexShaderFileStream  .open(_vertexShaderFilePath);
+		fragmentShaderFileStream.open(_fragmentShaderFilePath);
+
+		try
+		{
+			if (vertexShaderFileStream.is_open() and fragmentShaderFileStream.is_open())
+			{
+				stringstream vertSourceStrStream;
+				stringstream fragSourceStrStream;
+
+				vertSourceStrStream << vertexShaderFileStream  .rdbuf();
+				fragSourceStrStream << fragmentShaderFileStream.rdbuf();
+
+				vertexShaderFileStream  .close();
+				fragmentShaderFileStream.close();
+
+				vertexShaderCode   = vertSourceStrStream.str();
+				fragmentShaderCode = fragSourceStrStream.str();
+			}
+			else
+			{
+				throw std::runtime_error("Impossible to open% s.Are you in the right directory ? Don't forget to read the FAQ !");
+			}
+
+
+			RawString<const char> vertexSourcePtr   = vertexShaderCode  .c_str();
+			RawString<const char> fragmentSourcePtr = fragmentShaderCode.c_str();
+
+			cout << "Compiling shader: " << _vertexShaderFilePath << endl;
+
+			ID<Shader> vertexShader = CreateShader(EShaderType::Vertex);
+
+			BindShaderSource(vertexShader, 1, Address(vertexSourcePtr), NULL);
+			CompileShader   (vertexShader                                   );
+
+			cout << "Compiling shader: " << _fragmentShaderFilePath << endl;
+
+			ID<Shader> fragmentShader = CreateShader(EShaderType::Fragment);
+
+			BindShaderSource(fragmentShader, 1, Address(fragmentSourcePtr), NULL);
+			CompileShader   (fragmentShader                                     );
+
+			
+			cout << "Making Shader Program and Linking..." << endl;
+
+			ID<ShaderProgram> generatedProgram;
+
+			MakeShaderProgram(generatedProgram, vertexShader, fragmentShader);
+
+			DeleteShader(vertexShader  );
+			DeleteShader(fragmentShader);
+
+			return generatedProgram;
+		}
+		catch (const std::runtime_error _error)
+		{
+			ErrorRuntime(_error);
+
+			Exit(ExitCode::Failed);
+		}
+	}
+
+	sfn LoadRawShader()
+	{
+		ID<Shader> VertexShader  ;
+		ID<Shader> FragmentShader;
+
+		MakeShader(VertexShader  , EShaderType::Vertex  , 1, Address(GL::RawVertextShaderSource ), NULL);
+		MakeShader(FragmentShader, EShaderType::Fragment, 1, Address(GL::RawFragmentShaderSource), NULL);
+
+		GL::MakeShaderProgram(RawShader, VertexShader, FragmentShader);
+
+		GL::DeleteShader(VertexShader  );
+		GL::DeleteShader(FragmentShader);
+	}
+
+	sfn LoadSimpleShader()
+	{
+		SimpleShader = LoadShaders("SimpleVertexShader.vert", "SimpleFragmentShader.frag");
+	}
+
+	sfn LoadSimpleShader_Transformed()
+	{
+		SimpleShader_Transformed = LoadShaders("SimpleTransform.vert", "SingleColor.frag");
+
+		ScreenSpaceVarID = GL::GetUniformVariable(GL::SimpleShader_Transformed, "modelViewProjection");
+	}
+
+	sfn LoadDefaultShaders()
+	{
+		LoadRawShader               ();
+		LoadSimpleShader            ();
+		LoadSimpleShader_Transformed();
+	}
 
 	sfn MakeShader
 	(
@@ -101,6 +299,7 @@ namespace GL
 		ptr<RawString<const gChar>> _sourceCode            ,
 		ptr<          const gInt  > _lengthsOfStrings
 	)
+		-> void
 	{
 		_shaderIDHolder = CreateShader(_typeOfShader);
 
@@ -109,18 +308,54 @@ namespace GL
 		CompileShader(_shaderIDHolder);
 	}
 
-	sfn MakeShaderProgram(Ref(ID<ShaderProgram>) _shaderProgramIDHolder, ID<Shader> _shadersToAttach...)
+	sfn MakeShaderProgram(Ref(ID<ShaderProgram>) _shaderProgramIDHolder, const ID<Shader> _vertexShader, const ID<Shader> _fragShader) -> void
 	{
 		_shaderProgramIDHolder = CreateShaderProgram();
 
-		va_list args;
-
-		va_start(args, _shadersToAttach);
-
-		AttachShader(_shaderProgramIDHolder, va_arg(args, ID<Shader>));
-
-		va_end(args);
+		AttachShader(_shaderProgramIDHolder, _vertexShader);
+		AttachShader(_shaderProgramIDHolder, _fragShader  );
 
 		LinkProgramShader(_shaderProgramIDHolder);
+
+		gInt Result = false;
+
+		QueryShaderProgram(_shaderProgramIDHolder, EShaderProgramInfo::LinkStatus, Address(Result));
+
+		if (!Result)
+		{
+			gInt infoLogLength;
+
+			QueryShaderProgram(_shaderProgramIDHolder, EShaderProgramInfo::InfoLogLength, Address(infoLogLength));
+
+			if (infoLogLength > 0)
+			{
+				std::vector<char> ErrorMessage(infoLogLength + 1);
+
+				GetShaderProgramInfo(_shaderProgramIDHolder, infoLogLength, NULL, Address(ErrorMessage.at(0)));
+
+				throw std::runtime_error(Address(ErrorMessage.at(0)));
+			}
+			else
+			{
+				throw std::runtime_error("ShaderProgram compilation failed and did not get a proper info log.");
+			}
+		}
+
+		DetachShader(_shaderProgramIDHolder, _vertexShader);
+		DetachShader(_shaderProgramIDHolder, _fragShader  );
+
+		return;
+	}
+
+	sfn SetUniformVariable_MatrixVariableArray(const ID<Matrix> _matrixID, const gSize _numMatricies, const EBool _shouldTransposeValues, ptr<const float> _dataPtr)
+	{
+		glUniformMatrix4fv(_matrixID, _numMatricies, GLenum(_shouldTransposeValues), _dataPtr);
+	}
+
+	sfn UseProgramShader(ID<ShaderProgram> _shaderProgramToUse)
+	{
+		glUseProgram(_shaderProgramToUse);
+
+		return;
 	}
 }

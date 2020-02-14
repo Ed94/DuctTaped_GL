@@ -9,9 +9,10 @@ namespace GL
 {
 	// Fundamental Types
 
-	using gChar  = GLchar ;
-	using gFloat = GLfloat;
-	using gInt   = GLint  ;
-	using gUInt  = GLuint ;
-	using gSize  = GLsizei;
+	using gChar     = GLchar    ;
+	using gBitfield = GLbitfield;
+	using gFloat    = GLfloat   ;
+	using gInt      = GLint     ;
+	using gUInt     = GLuint    ;
+	using gSize     = GLsizei   ;
 }

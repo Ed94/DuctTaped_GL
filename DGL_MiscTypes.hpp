@@ -2,6 +2,8 @@
 
 // OpenGL
 #include <glew.h>
+#include <glm/detail/type_vec3.hpp>
+
 
 // Duck Tape
 #include "DGL_FundamentalTypes.hpp"
@@ -13,17 +15,28 @@
 
 namespace GL
 {
-	// Made up types.
+	namespace Generic
+	{
+		template<typename Type>
+		using Vector3 = glm::tvec3<Type>;
+	}
+
+	using DataPtr = ptr<GLvoid>;
 
 	template<typename ReferenceType>
 	using ID = gUInt;
 
 	// ID Reference Types
 
-	class Buffer       ;
-	class Shader       ;
+	class Buffer;
+	class Matrix;
+	class Shader;
 	class ShaderProgram;
+	class VertexBuffer;
+	class ElementBuffer;
 
-	using DataPtr      = ptr<GLvoid>;
-	using VertexBuffer = gUInt      ;
+	using Matrix4x4 = glm::mat4;
+
+	using Vector3 = glm::vec3;
+	using Vector4 = glm::vec4;
 }

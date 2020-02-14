@@ -15,33 +15,44 @@
 
 namespace GL
 {
-	sfn ClearBuffer()
-	{
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		return;
-	}
-
-	sfn BindBuffer(EBufferTarget _targetType, ID<Buffer> _buffer)
+	sfn BindBuffer(const EBufferTarget _targetType, const ID<Buffer> _buffer)
 	{
 		glBindBuffer(GLenum(_targetType), _buffer);
 
 		return;
 	}
 
-	sfn BindVertexArray(ptr<gUInt> _referenceToTrackArray)
+	sfn BindVertexArray(const gUInt _referenceToTrackArray)
 	{
-		glBindVertexArray(Dref(_referenceToTrackArray));
+		glBindVertexArray(_referenceToTrackArray);
 
 		return;
 	}
 
 	template<typename TypeOfData>
-	sfn BufferData(ptr<TypeOfData> _data, EBufferTarget _targetType, EBufferUsage _usageType)
+	sfn BufferData(ptr<TypeOfData> _data, const EBufferTarget _targetType, const EBufferUsage _usageType)
 	{
 		glBufferData(GLenum(_targetType), sizeof(TypeOfData), _data, GLenum(_usageType));
 
 		return;
+	}
+
+	template<typename... Type, typename = EFrameBuffer>
+	sfn ClearBuffer(const Type... _buffersToClear)
+	{
+		glClear((gBitfield(_buffersToClear) | ...));
+
+		return;
+	}
+
+	sfn DisableVertexAttributeArray(const gInt _vertexAttributeArrayIndex)
+	{
+		glDisableVertexAttribArray(_vertexAttributeArrayIndex);
+	}
+
+	sfn EnableVertexAttributeArray(const gInt _vertexAttributeArrayIndex)
+	{
+		glEnableVertexAttribArray(_vertexAttributeArrayIndex);
 	}
 
 	template<typename VertType>

@@ -1,19 +1,18 @@
 #pragma once
 
-// C++ STL
-#include <iostream>
-#include <stdexcept>
-#include <vector>
-
 // GL
+//#include <gl/GLU.h>
 #include <glew.h>
 #include <glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "DGL_FundamentalTypes.hpp"
 #include "DGL_MiscTypes.hpp"
 #include "DGL_Enum.hpp"
 #include "DGL_Shader.hpp"
 #include "DGL_Buffers.hpp"
+#include "DGL_Space.hpp"
 
 // Non-Standard C++
 #include "Cpp_Alias.hpp"
@@ -45,18 +44,6 @@ namespace GL
 	WindowRefList Windows;
 
 
-
-	// Error Stuff
-
-	sfn ErrorRuntime(Ref(std::runtime_error) _error)
-	{
-		cout << "Runtime error occurred: " << _error.what() << endl;
-
-		return;
-	}
-
-
-
 	// Constants
 
 	sfn constexpr NotShared   () -> ptr<Window > { return NULL; }
@@ -64,14 +51,12 @@ namespace GL
 
 
 
+	// Forward Declares
+
+	sfn SwapBuffers(const ptr<Window> _window) -> void;
+
+
 	// Functionality
-
-	sfn SwapBuffers(const ptr<Window> _window) -> void
-	{
-		glfwSwapBuffers(_window);
-
-		return;
-	}
 
 	sfn CanClose(const ptr<Window> _theWindow)
 	{
@@ -124,6 +109,16 @@ namespace GL
 		return;
 	}
 
+	sfn DrawArrays(EPrimitives _primitive, gInt _startingIndex, gInt _numToRender)
+	{
+		glDrawArrays(GLenum(_primitive), _startingIndex, _numToRender);   // Starting from vertex 0; 3 vertices total -> 1 triangle.
+	}
+
+	sfn DrawElements(EPrimitives _primitive, gSize _numElements, EDataType _dataType, DataPtr _offfsetAddressFromFirstIndex)
+	{
+		glDrawElements(GLenum(_primitive), _numElements, GLenum(_dataType), _offfsetAddressFromFirstIndex);
+	}
+
 	sfn GetTime() -> TimeValDec
 	{
 		return glfwGetTime();
@@ -146,7 +141,7 @@ namespace GL
 				throw std::runtime_error("Failed to initialize GLFW");
 			}
 		}
-		catch (std::runtime_error _error)
+		catch (const std::runtime_error _error)
 		{
 			ErrorRuntime(_error);
 
@@ -177,7 +172,7 @@ namespace GL
 
 			cout << "OpenGL Version: " << glGetString(GL_VERSION) << endl;
 		}
-		catch (std::runtime_error _error)
+		catch (const std::runtime_error _error)
 		{
 			ErrorRuntime(_error);
 
@@ -197,7 +192,7 @@ namespace GL
 		/* Loop until the user closes the window */
 		while (not CanClose(_window))
 		{
-			ClearBuffer();
+			ClearBuffer(EFrameBuffer::Color);
 
 			SwapBuffers(_window);
 
@@ -217,7 +212,14 @@ namespace GL
 
 			if (deltaSinceClear > _interval)
 			{
-				ClearBuffer();
+
+				ClearBuffer(EFrameBuffer::Color, EFrameBuffer::Depth);
+				//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
+
+				//glMatrixMode(GL_MODELVIEW);
+
+				//glLoadIdentity();
 
 				_renderProcedure();
 
@@ -254,12 +256,24 @@ namespace GL
 				throw std::runtime_error( Dref(ErrorMsg) );
 			}
 		}
-		catch (std::runtime_error _error)
+		catch (const std::runtime_error _error)
 		{
 			ErrorRuntime(_error);
 
 			Exit(ExitCode::Failed);
 		}
+
+		return;
+	}
+
+	sfn SetPolygonMode(EFace _desiredFaces, EMode _desiredMode)
+	{
+		glPolygonMode(GLenum(_desiredFaces), GLenum(_desiredMode));
+	}
+
+	sfn SwapBuffers(const ptr<Window> _window) -> void
+	{
+		glfwSwapBuffers(_window);
 
 		return;
 	}
