@@ -13,7 +13,7 @@
 
 
 
-namespace GL
+namespace DGL
 {
 	namespace Generic
 	{
@@ -25,6 +25,15 @@ namespace GL
 
 	template<typename ReferenceType>
 	using ID = gUInt;
+
+
+	struct LinearColor
+	{
+		gFloatClamped Red, Green, Blue, Alpha;
+
+		LinearColor(gFloatClamped _red, gFloatClamped _green, gFloatClamped _blue, gFloatClamped _alpha) :
+			Red(_red), Green(_green), Blue(_blue), Alpha(_alpha) {};
+	};
 
 	// ID Reference Types
 

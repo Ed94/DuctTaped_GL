@@ -88,7 +88,7 @@ public:
 			checkCompileErrors(geometry, "GEOMETRY");
 		}
 
-		GL::MakeShaderProgram(ID, vertex, fragment);
+		DGL::MakeShaderProgram(ID, vertex, fragment);
 
 		// shader Program
 	/*	ID = glCreateProgram();

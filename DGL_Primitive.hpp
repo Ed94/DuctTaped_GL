@@ -5,7 +5,7 @@
 
 
 
-namespace GL
+namespace DGL
 {
 
 	struct Primitive

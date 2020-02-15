@@ -5,12 +5,38 @@
 
 
 
-namespace GL
+namespace DGL
 {
+	enum class EAxis
+	{
+		X, Y, Z
+	};
+
+	enum class ERotationAxis
+	{
+		Pitch, Yaw, Roll
+	};
+
 	enum class EBool
 	{
 		True  = GL_TRUE ,
 		False = GL_FALSE
+	};
+
+	enum class EMouseMode
+	{
+		Cursor     = GLFW_CURSOR              ,
+		RawMouse   = GLFW_RAW_MOUSE_MOTION    ,	   
+		StickyKeys = GLFW_STICKY_KEYS         ,
+		StickMouse = GLFW_STICKY_MOUSE_BUTTONS,
+		LockKey    = GLFW_LOCK_KEY_MODS       ,
+	};
+
+	enum class ECursorMode
+	{
+		Normal  = GLFW_CURSOR_NORMAL  ,
+		Hidden  = GLFW_CURSOR_HIDDEN  ,
+		Disable = GLFW_CURSOR_DISABLED
 	};
 	  
 	enum class EBufferTarget
@@ -66,10 +92,20 @@ namespace GL
 		Double        = GL_DOUBLE
 	};
 
+	enum class EDirection
+	{
+		Up      ,
+		Down    ,
+		Left    ,
+		Right   ,
+		Forward ,
+		Backward
+	};
+
 	enum class EFace
 	{
-		Front = GL_FRONT,
-		Back = GL_BACK,
+		Front          = GL_FRONT         ,
+		Back           = GL_BACK          ,
 		Front_and_Back = GL_FRONT_AND_BACK
 	};
 
@@ -79,6 +115,24 @@ namespace GL
 		Color        = GL_COLOR_BUFFER_BIT  ,
 		Depth        = GL_DEPTH_BUFFER_BIT  ,
 		Stencil      = GL_STENCIL_BUFFER_BIT
+	};
+
+	enum class EKeyCodes
+	{
+		F1        = GLFW_KEY_F1        ,
+		A         = GLFW_KEY_A         ,
+		D         = GLFW_KEY_D         ,
+		E         = GLFW_KEY_E         ,
+		Q         = GLFW_KEY_Q         ,
+		S         = GLFW_KEY_S         ,
+		W         = GLFW_KEY_W         ,
+		LeftShift = GLFW_KEY_LEFT_SHIFT
+	};
+
+	enum class EKeyState
+	{
+		Pressed  = GLFW_PRESS  ,
+		Released = GLFW_RELEASE
 	};
 
 	enum class ELODBias
@@ -102,12 +156,14 @@ namespace GL
 		LinearToLinear   = GL_LINEAR_MIPMAP_LINEAR
 	};
 
-	enum class EMode
+	enum class ERenderMode
 	{
 		Point = GL_POINT,
 		Line  = GL_LINE ,
 		Fill  = GL_FILL
 	};
+
+	
 
 	enum class EPrimitives
 	{

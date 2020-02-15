@@ -8,7 +8,7 @@
 
 
 
-namespace GL
+namespace DGL
 {
 	// Some Raw Source Defaults:
 
@@ -45,10 +45,10 @@ namespace GL
 
 	// Forward Declarations
 
-	sfn GetShaderInfo(ID<Shader> _shader       , gSize       _logLength        , ptr<gSize> _infoLengthRef      , RawString<gChar> _infoLogRef) -> void;
-	sfn QueryShader  (ID<Shader> _shaderToQuery, EShaderInfo _shaderInfoDesired, ptr<gInt > _requestedInfoObject                              ) -> void;
-	sfn MakeShader(Ref(ID<Shader>) _shaderIDHolder, EShaderType _typeOfShader, uInt64 _numberOfStringElements, ptr<RawString<const gChar>> _sourceCode, ptr<const gInt> _lengthsOfStrings) -> void;
-	sfn MakeShaderProgram(Ref(ID<ShaderProgram>) _shaderProgramIDHolder, const ID<Shader> _vertexShader, const ID<Shader> _fragShader) -> void;
+	sfn GetShaderInfo    (    ID<Shader       >  _shader               ,       gSize       _logLength        , ptr<gSize> _infoLengthRef      , RawString<gChar> _infoLogRef) -> void;
+	sfn QueryShader      (    ID<Shader       >  _shaderToQuery        ,       EShaderInfo _shaderInfoDesired, ptr<gInt > _requestedInfoObject                              ) -> void;
+	sfn MakeShader       (Ref(ID<Shader       >) _shaderIDHolder       ,       EShaderType _typeOfShader , uInt64 _numberOfStringElements, ptr<RawString<const gChar>> _sourceCode, ptr<const gInt> _lengthsOfStrings) -> void;
+	sfn MakeShaderProgram(Ref(ID<ShaderProgram>) _shaderProgramIDHolder, const ID<Shader>  _vertexShader, const ID<Shader> _fragShader) -> void;
 
 
 
@@ -155,6 +155,8 @@ namespace GL
 	sfn GetShaderProgramInfo(ID<ShaderProgram> _shaderProgram, gSize _logLength, ptr<gSize> _infoLengthRef, RawString<gChar> _infoLogRef) -> void
 	{
 		glGetProgramInfoLog(_shaderProgram, _logLength, _infoLengthRef, _infoLogRef);
+
+		return;
 	}
 
 	sfn GetUniformVariable(const ID<ShaderProgram> _programID, RawString<const char> _nameOfVariable) -> ID<Matrix>
@@ -172,11 +174,15 @@ namespace GL
 	sfn QueryShader(ID<Shader> _shaderToQuery, EShaderInfo _shaderInfoDesired, ptr<gInt> _requestedInfoObject) -> void
 	{
 		glGetShaderiv(_shaderToQuery, GLenum(_shaderInfoDesired), _requestedInfoObject);
+
+		return;
 	}
 
 	sfn QueryShaderProgram(ID<ShaderProgram> _shaderToQuery, EShaderProgramInfo _shaderProgramInfoDesired, ptr<gInt> _requestedInfoObject) -> void
 	{
 		glGetProgramiv(_shaderToQuery, GLenum(_shaderProgramInfoDesired), _requestedInfoObject);
+
+		return;
 	}
 
 	sfn LoadShaders(RawString<const char> _vertexShaderFilePath, RawString<const char> _fragmentShaderFilePath) -> ID<ShaderProgram>
@@ -263,25 +269,31 @@ namespace GL
 		ID<Shader> VertexShader  ;
 		ID<Shader> FragmentShader;
 
-		MakeShader(VertexShader  , EShaderType::Vertex  , 1, Address(GL::RawVertextShaderSource ), NULL);
-		MakeShader(FragmentShader, EShaderType::Fragment, 1, Address(GL::RawFragmentShaderSource), NULL);
+		MakeShader(VertexShader  , EShaderType::Vertex  , 1, Address(DGL::RawVertextShaderSource ), NULL);
+		MakeShader(FragmentShader, EShaderType::Fragment, 1, Address(DGL::RawFragmentShaderSource), NULL);
 
-		GL::MakeShaderProgram(RawShader, VertexShader, FragmentShader);
+		DGL::MakeShaderProgram(RawShader, VertexShader, FragmentShader);
 
-		GL::DeleteShader(VertexShader  );
-		GL::DeleteShader(FragmentShader);
+		DGL::DeleteShader(VertexShader  );
+		DGL::DeleteShader(FragmentShader);
+
+		return;
 	}
 
 	sfn LoadSimpleShader()
 	{
 		SimpleShader = LoadShaders("SimpleVertexShader.vert", "SimpleFragmentShader.frag");
+
+		return;
 	}
 
 	sfn LoadSimpleShader_Transformed()
 	{
 		SimpleShader_Transformed = LoadShaders("SimpleTransform.vert", "SingleColor.frag");
 
-		ScreenSpaceVarID = GL::GetUniformVariable(GL::SimpleShader_Transformed, "modelViewProjection");
+		ScreenSpaceVarID = DGL::GetUniformVariable(DGL::SimpleShader_Transformed, "modelViewProjection");
+
+		return;
 	}
 
 	sfn LoadDefaultShaders()
@@ -289,6 +301,8 @@ namespace GL
 		LoadRawShader               ();
 		LoadSimpleShader            ();
 		LoadSimpleShader_Transformed();
+
+		return;
 	}
 
 	sfn MakeShader
@@ -306,6 +320,8 @@ namespace GL
 		BindShaderSource(_shaderIDHolder, _numberOfStringElements, _sourceCode, _lengthsOfStrings);
 
 		CompileShader(_shaderIDHolder);
+
+		return;
 	}
 
 	sfn MakeShaderProgram(Ref(ID<ShaderProgram>) _shaderProgramIDHolder, const ID<Shader> _vertexShader, const ID<Shader> _fragShader) -> void
@@ -350,6 +366,8 @@ namespace GL
 	sfn SetUniformVariable_MatrixVariableArray(const ID<Matrix> _matrixID, const gSize _numMatricies, const EBool _shouldTransposeValues, ptr<const float> _dataPtr)
 	{
 		glUniformMatrix4fv(_matrixID, _numMatricies, GLenum(_shouldTransposeValues), _dataPtr);
+
+		return;
 	}
 
 	sfn UseProgramShader(ID<ShaderProgram> _shaderProgramToUse)

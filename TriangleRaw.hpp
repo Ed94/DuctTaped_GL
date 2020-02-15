@@ -6,14 +6,14 @@
 
 
 
-using GL::gFloat;
-using GL::VertexBuffer;
-using GL::EBufferTarget;
-using GL::EBufferUsage;
-using GL::Buffer;
-using GL::ID;
-using GL::gInt;
-using GL::gSize;
+using DGL::gFloat;
+using DGL::VertexBuffer;
+using DGL::EBufferTarget;
+using DGL::EBufferUsage;
+using DGL::Buffer;
+using DGL::ID;
+using DGL::gInt;
+using DGL::gSize;
 
 
 
@@ -37,9 +37,9 @@ struct TriangleRaw
 
 TriangleRaw EquilateralTriangleVerticies = 
 { 
-	{ -1.0f, -1.0f, 0.0f }, 
-	{  1.0f, -1.0f, 0.0f }, 
-	{  0.0f,  1.0f, 0.0f } 
+	{ -1.0f, -1.0f, 0.0f },   // Vert1
+	{  1.0f, -1.0f, 0.0f },   // Vert2
+	{  0.0f,  1.0f, 0.0f }    // Vert 3 
 };
 
 
@@ -87,10 +87,10 @@ struct RectangleIndices
 
 RectangleCompressed rectCompress =
 {
-	{  0.5f,  0.5f, 0.0f },
-	{  0.5f, -0.5f, 0.0f },
-	{ -0.5f, -0.5f, 0.0f },
-	{ -0.5f,  0.5f, 0.0f }
+	{  1.0f,  1.0f, 0.0f },
+	{  1.0f, -1.0f, 0.0f },
+	{ -1.0f, -1.0f, 0.0f },
+	{ -1.0f,  1.0f, 0.0f }
 };
 
 RectangleIndices rectIndices =
@@ -99,7 +99,7 @@ RectangleIndices rectIndices =
 	{ 1, 2, 3 }
 };
 
-using GL::ElementBuffer;
+using DGL::ElementBuffer;
 
 ID<ElementBuffer> ElemBufferObj;
 
@@ -124,35 +124,35 @@ TriTexCoords textureCoords =
 
 sfn RAW_SetupBuffers()
 {
-	GL::GenerateVertexBuffers(Address(VertexArrayObj ), 1);
-	GL::GenerateBuffers      (Address(VertexBufferObj), 1);
-	GL::GenerateBuffers      (Address(ElemBufferObj  ), 1);
+	DGL::GenerateVertexBuffers(Address(VertexArrayObj ), 1);
+	DGL::GenerateBuffers      (Address(VertexBufferObj), 1);
+	DGL::GenerateBuffers      (Address(ElemBufferObj  ), 1);
 }
 
 sfn RAW_SetupTriangleBuffer()
 {
-	GL::GenerateBuffers(Address(VertexBufferObj), 1);
+	DGL::GenerateBuffers(Address(VertexBufferObj), 1);
 }
 
 sfn RAW_BindAndBufferDataToIDs()
 {
-	GL::BindVertexArray(VertexArrayObj);
+	DGL::BindVertexArray(VertexArrayObj);
 
-	GL::BindBuffer(EBufferTarget::VertexAttributes, VertexBufferObj);
+	DGL::BindBuffer(EBufferTarget::VertexAttributes, VertexBufferObj);
 
-	GL::BufferData<TriangleRaw>(Address(EquilateralTriangleVerticies), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
+	//GL::BufferData<TriangleRaw>(Address(EquilateralTriangleVerticies), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
 
-	//GL::BufferData<RectangleCompressed>(Address(rectCompress), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
+	DGL::BufferData<RectangleCompressed>(Address(rectCompress), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
 	
-	//GL::BindBuffer(EBufferTarget::VertexIndices, ElemBufferObj);
+	DGL::BindBuffer(EBufferTarget::VertexIndices, ElemBufferObj);
 
-	//GL::BufferData<RectangleIndices>(Address(rectIndices), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
+	DGL::BufferData<RectangleIndices>(Address(rectIndices), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
 }
 
-GL::gInt VertexAttributeIndex = 0;   // See shader source: (layout = 0).
+DGL::gInt VertexAttributeIndex = 0;   // See shader source: (layout = 0).
 
-using GL::EBool    ;
-using GL::EDataType;
+using DGL::EBool    ;
+using DGL::EDataType;
 
 constexpr sfn ZeroOffset() -> ptr<void>
 {

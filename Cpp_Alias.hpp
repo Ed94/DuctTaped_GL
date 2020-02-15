@@ -21,6 +21,10 @@ This merely removes the need to use operators I don't like and wraps them in eas
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <chrono>
+#include <thread>
+#include <memory>
+#include <functional>
 
 
 
@@ -52,6 +56,12 @@ using ptr = Type*;
 
 template<typename ReturnType, typename... ParamTypes>
 using FnPtr = ReturnType(*)(ParamTypes...);
+
+template<typename FnType>
+using Delegate = std::function<FnType>;
+
+template<typename ReturnType, typename... ParamTypes>
+using Func = ReturnType(ParamTypes...);
 
 // Strings
 

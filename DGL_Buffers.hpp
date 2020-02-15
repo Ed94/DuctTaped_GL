@@ -13,7 +13,7 @@
 
 
 
-namespace GL
+namespace DGL
 {
 	sfn BindBuffer(const EBufferTarget _targetType, const ID<Buffer> _buffer)
 	{
