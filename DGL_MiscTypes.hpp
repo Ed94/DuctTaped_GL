@@ -1,7 +1,7 @@
 #pragma once
 
 // OpenGL
-#include <glew.h>
+#include <glew.h                  >
 #include <glm/detail/type_vec3.hpp>
 
 
@@ -37,11 +37,11 @@ namespace DGL
 
 	// ID Reference Types
 
-	class Buffer;
-	class Matrix;
-	class Shader;
+	class Buffer       ;
+	class Matrix       ;
+	class Shader       ;
 	class ShaderProgram;
-	class VertexBuffer;
+	class VertexBuffer ;
 	class ElementBuffer;
 
 	using Matrix4x4 = glm::mat4;

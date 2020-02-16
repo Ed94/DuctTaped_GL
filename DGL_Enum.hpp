@@ -12,33 +12,12 @@ namespace DGL
 		X, Y, Z
 	};
 
-	enum class ERotationAxis
-	{
-		Pitch, Yaw, Roll
-	};
-
 	enum class EBool
 	{
 		True  = GL_TRUE ,
 		False = GL_FALSE
 	};
-
-	enum class EMouseMode
-	{
-		Cursor     = GLFW_CURSOR              ,
-		RawMouse   = GLFW_RAW_MOUSE_MOTION    ,	   
-		StickyKeys = GLFW_STICKY_KEYS         ,
-		StickMouse = GLFW_STICKY_MOUSE_BUTTONS,
-		LockKey    = GLFW_LOCK_KEY_MODS       ,
-	};
-
-	enum class ECursorMode
-	{
-		Normal  = GLFW_CURSOR_NORMAL  ,
-		Hidden  = GLFW_CURSOR_HIDDEN  ,
-		Disable = GLFW_CURSOR_DISABLED
-	};
-	  
+	
 	enum class EBufferTarget
 	{
 		VertexAttributes                = GL_ARRAY_BUFFER             ,
@@ -76,6 +55,13 @@ namespace DGL
 	{
 		RefToTexture = GL_COMPARE_REF_TO_TEXTURE,
 		None         = GL_NONE
+	};
+
+	enum class ECursorMode
+	{
+		Normal  = GLFW_CURSOR_NORMAL  ,
+		Hidden  = GLFW_CURSOR_HIDDEN  ,
+		Disable = GLFW_CURSOR_DISABLED
 	};
 
 	enum class EDataType
@@ -126,7 +112,8 @@ namespace DGL
 		Q         = GLFW_KEY_Q         ,
 		S         = GLFW_KEY_S         ,
 		W         = GLFW_KEY_W         ,
-		LeftShift = GLFW_KEY_LEFT_SHIFT
+		LeftShift = GLFW_KEY_LEFT_SHIFT,
+		Escape    = GLFW_KEY_ESCAPE
 	};
 
 	enum class EKeyState
@@ -156,6 +143,15 @@ namespace DGL
 		LinearToLinear   = GL_LINEAR_MIPMAP_LINEAR
 	};
 
+	enum class EMouseMode
+	{
+		Cursor     = GLFW_CURSOR              ,
+		RawMouse   = GLFW_RAW_MOUSE_MOTION    ,	   
+		StickyKeys = GLFW_STICKY_KEYS         ,
+		StickMouse = GLFW_STICKY_MOUSE_BUTTONS,
+		LockKey    = GLFW_LOCK_KEY_MODS       ,
+	};
+
 	enum class ERenderMode
 	{
 		Point = GL_POINT,
@@ -163,8 +159,11 @@ namespace DGL
 		Fill  = GL_FILL
 	};
 
+	enum class ERotationAxis
+	{
+		Pitch, Yaw, Roll
+	};
 	
-
 	enum class EPrimitives
 	{
 		Points = GL_POINTS,

@@ -1,6 +1,11 @@
 #pragma once
 
+// GLM
+#include <glm/glm.hpp                  >
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp >
 
+// DGL
 #include "DGL_FundamentalTypes.hpp"
 #include "DGL_MiscTypes.hpp"
 
@@ -45,9 +50,14 @@ namespace DGL
 		return glm::perspective(_fieldOfView, _aspectRatio, _nearPlane, _farPlane);
 	}
 
-	sfn Translate(const Matrix4x4 _matrix, Vector3 _translationAmount)
+	sfn GetCrossNormal(Vector3 _subj, Vector3 _ref) -> Vector3
 	{
-		return glm::translate(_matrix, _translationAmount);
+		return glm::cross(_subj, _ref);
+	}
+
+	sfn GetDirection(Vector3 _vectorSpecified)
+	{
+		return glm::normalize(_vectorSpecified);
 	}
 
 	sfn Rotate(const Matrix4x4 _matrix, gFloat _rotationAngleAmount, Vector3 _axis) -> Matrix4x4
@@ -61,14 +71,9 @@ namespace DGL
 		return glm::radians(_degrees);
 	}
 
-	sfn GetCrossNormal(Vector3 _subj, Vector3 _ref) -> Vector3
+	sfn Translate(const Matrix4x4 _matrix, Vector3 _translationAmount)
 	{
-		return glm::cross(_subj, _ref);
-	}
-
-	sfn GetDirection(Vector3 _vectorSpecified)
-	{
-		return glm::normalize(_vectorSpecified);
+		return glm::translate(_matrix, _translationAmount);
 	}
 
 
@@ -96,8 +101,6 @@ namespace DGL
 
 		gFloat ScreenWidth = 720.0f, ScreenHeight = 540.0f, ScreenCenterWidth = ScreenWidth / 2, ScreenCenterHeight = ScreenHeight / 2;
 	}
-
-	using std::cout; using std::endl;
 
 	struct Camera
 	{
@@ -130,15 +133,9 @@ namespace DGL
 			UpDirection   (_upDirection   ),
 			FrontDirection(_frontDirection)
 		{
-			std::cout << UpDirection.x << ", " << UpDirection.y << ", " << UpDirection.z << std::endl;
-
 			Yaw = -90.0f; Pitch = 0; Roll = 0;
 
-			//Yaw = 0;
-
 			UpdateCamera();
-
-			std::cout << UpDirection.x << ", " << UpDirection.y << ", " << UpDirection.z << std::endl;
 
 			Orthographic = CreateOrthographic(0.0f, DefaultSpace::ScreenWidth, 0.0f, DefaultSpace::ScreenHeight, ClipSpace.Near, ClipSpace.Far);
 
@@ -152,49 +149,37 @@ namespace DGL
 			{
 			case EDirection::Up:
 			{
-				Position += UpDirection * _translationAmount * _deltaTime;
-
-				LookAtPosition += UpDirection * _translationAmount * _deltaTime;
+				Position -= UpDirection * _translationAmount * _deltaTime;
 
 				break;
 			}
 			case EDirection::Down:
 			{
-				Position -= UpDirection * _translationAmount * _deltaTime;
-
-				LookAtPosition -= UpDirection * _translationAmount * _deltaTime;
+				Position += UpDirection * _translationAmount * _deltaTime;
 
 				break;
 			}
 			case EDirection::Left:
 			{
-				Position += GetDirection(GetCrossNormal(FrontDirection, UpDirection)) * _translationAmount * _deltaTime;
-
-				//LookAtPosition += GetDirection(GetCrossNormal(FrontDirection, UpDirection)) * _translationAmount * _deltaTime;
+				Position -= GetDirection(GetCrossNormal(FrontDirection, UpDirection)) * _translationAmount * _deltaTime;
 
 				break;
 			}
 			case EDirection::Right:
 			{
-				Position -= GetDirection(GetCrossNormal(FrontDirection, UpDirection)) * _translationAmount * _deltaTime;
-
-				//LookAtPosition -= GetDirection(GetCrossNormal(FrontDirection, UpDirection)) * _translationAmount * _deltaTime;
+				Position += GetDirection(GetCrossNormal(FrontDirection, UpDirection)) * _translationAmount * _deltaTime;
 
 				break;
 			}
 			case EDirection::Forward:
 			{
-				Position -= FrontDirection * _translationAmount * _deltaTime;
-
-				LookAtPosition -= FrontDirection * _translationAmount * _deltaTime;
+				Position += FrontDirection * _translationAmount * _deltaTime;
 
 				break;
 			}
 			case EDirection::Backward:
 			{
-				Position += FrontDirection * _translationAmount * _deltaTime;
-
-				LookAtPosition += FrontDirection * _translationAmount * _deltaTime;
+				Position -= FrontDirection * _translationAmount * _deltaTime;
 
 				break;
 			}
@@ -203,11 +188,15 @@ namespace DGL
 				throw std::logic_error("Direction move not defined.");
 			}
 			}
+
+			return;
 		}
 
 		sfn Move(Vector3 _translationAmount, Ref(gFloat) _deltaTime)
 		{
 			Position += _translationAmount * _deltaTime;
+
+			return;
 		}
 
 		sfn Rotate(ERotationAxis _pivot, gFloat _rotationAmount, gFloat _deltaTime)
@@ -226,8 +215,6 @@ namespace DGL
 				{
 					Pitch = -89.9f;
 				}
-
-				//std::cout << "Pitch: " << Pitch << std::endl;
 
 				break;
 			}
@@ -250,34 +237,16 @@ namespace DGL
 			{
 				Yaw += _rotationAmount * _deltaTime;
 
-				/*if (Yaw > 89.9f)
-				{
-					Yaw = 89.9f;
-				}
-				else if (Yaw < -89.9f)
-				{
-					Pitch = -89.9f;
-				}*/
-
-				//std::cout << "Yaw: " << Yaw << std::endl;
-
 				break;
 			}
 			}
 
-
-			/*std::cout << "Front Direction: " << FrontDirection.x << ", " << FrontDirection.y << ", " << FrontDirection.z << std::endl;
-			std::cout << "Right Direction: " << RightDirection.x << ", " << RightDirection.y << ", " << RightDirection.z << std::endl;
-			std::cout << "Up Direction: " << UpDirection.x << ", " << UpDirection.y << ", " << UpDirection.z << std::endl;*/
+			return;
 		}
 
 
 		sfn UpdateCamera() -> void
 		{
-			//cout << Pitch << Yaw << Roll << endl;
-
-			//cout << "Cosine: " << Cosine(ToRadians(Yaw)) << endl;
-
 			FrontDirection.x = Cosine(ToRadians(Yaw  )) * Cosine(ToRadians(Pitch));
 			FrontDirection.y = Sine  (ToRadians(Pitch))                           ;
 			FrontDirection.z = Sine  (ToRadians(Yaw  )) * Cosine(ToRadians(Pitch));
@@ -286,19 +255,11 @@ namespace DGL
 			RightDirection = GetDirection(GetCrossNormal(FrontDirection, DefaultSpace::UpDirection   ));
 			UpDirection    = GetDirection(GetCrossNormal(RightDirection,               FrontDirection));
 
-			//Matrix4x4 mRoll  = glm::rotate(mRoll , Roll , DefaultSpace::FrontDirection);
-			//Matrix4x4 mPitch = glm::rotate(mPitch, Pitch, DefaultSpace::RightDirection);
-			//Matrix4x4 mYaw   = glm::rotate(mYaw  , Roll , DefaultSpace::UpDirection   );
+			LookAtPosition = Position + FrontDirection;
 
-			//Matrix4x4 rotation = mPitch * mYaw;
+			Viewport = CreateLookAtView(Position, LookAtPosition, UpDirection);
 
-			Viewport = CreateLookAtView(Position, LookAtPosition - FrontDirection, UpDirection);
-
-			//glm::mat4 translate = glm::mat4(1.0f);
-
-			//translate = glm::translate(translate, -LookAtPosition);
-
-			//Viewport = rotation * translate;
+			return;
 		}
 	};
 
@@ -321,9 +282,9 @@ namespace DGL
 
 		sfn UpdateScreenspace()
 		{
-			//Screenspace = WorldCamera.Perspective * WorldCamera.Viewport * WorldSpace;
+			Screenspace = WorldCamera.Perspective * WorldCamera.Viewport * WorldSpace;
+
+			return;
 		}
 	}
-
-
 }

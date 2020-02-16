@@ -12,19 +12,22 @@ This merely removes the need to use operators I don't like and wraps them in eas
 
 #pragma once
 
-#include <algorithm>
-#include <cstdarg>
-#include <exception>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include <vector>
-#include <chrono>
-#include <thread>
-#include <memory>
+#include <algorithm >
+#include <chrono    >
+#include <cstdarg   >
+#include <exception >
+#include <fstream   >
 #include <functional>
+#include <iostream  >
+#include <memory    >
+#include <queue     >
+#include <sstream   >
+#include <stdexcept >
+#include <string    >
+#include <vector    >
+#include <thread    >
+#include <tuple     >
+#include <utility   >
 
 
 
@@ -43,11 +46,14 @@ _type&
 _type&&
 
 
+
 // Aliases
 
 // Fundamental
 
 using uInt64 = unsigned long long int;
+
+
 
 // Pointers
 
@@ -63,10 +69,29 @@ using Delegate = std::function<FnType>;
 template<typename ReturnType, typename... ParamTypes>
 using Func = ReturnType(ParamTypes...);
 
+template<typename Type>
+using UPtr = std::unique_ptr<Type>;
+
+template<typename Type>
+using SPtr = std::shared_ptr<Type>;
+
+
+
 // Strings
 
 template<typename CharType>
 using RawString = ptr<CharType>;
+
+
+using std::cout; 
+using std::endl;
+using DataSize = std::size_t;
+
+using Thread = std::thread;
+
+template<typename... ObjectTypes>
+using Tuple = std::tuple<ObjectTypes...>;
+
 
 
 // Enum
@@ -76,6 +101,7 @@ enum class ExitCode
 	Success = EXIT_SUCCESS,
 	Failed  = EXIT_FAILURE
 };
+
 
 
 // Functions
@@ -93,6 +119,19 @@ sfn Dref(ptr<Type> _type) -> Ref(Type)
 {
 	return *_type;
 }
+
+template<typename Type, typename... ParamTypes>
+sfn MakeUPtr(rRef(ParamTypes)... _params) -> UPtr<Type>
+{
+	return std::make_unique<Type>(_params...);
+}
+
+template<typename Type, typename... ParamTypes>
+sfn MakeSPtr(rRef(ParamTypes)... _params) -> SPtr<Type>
+{
+	return std::make_shared<Type>(_params...);
+}
+
 
 
 // Exit

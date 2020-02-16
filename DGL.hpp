@@ -1,12 +1,12 @@
 #pragma once
 
-// GL
-//#include <gl/GLU.h>
-#include <glew.h>
-#include <glfw3.h>
-#include <glm/glm.hpp>
+// GLFW, GLEW, GLM
+#include <glew.h                      >
+#include <glfw3.h                     >
+#include <glm/glm.hpp                 >
 #include <glm/gtc/matrix_transform.hpp>
 
+// DGL
 #include "DGL_FundamentalTypes.hpp"
 #include "DGL_MiscTypes.hpp"
 #include "DGL_Enum.hpp"
@@ -63,6 +63,11 @@ namespace DGL
 		return glfwWindowShouldClose(_theWindow);
 	}
 
+	sfn CanUseRawMouse()
+	{
+		return glfwRawMouseMotionSupported();
+	}
+
 	sfn CreateWindow
 	(
 		int                   _width,
@@ -92,6 +97,11 @@ namespace DGL
 		return Windows.back();
 	}
 
+	sfn CursorPositionUpdateBind(ptr<Window> _window, FnPtr<void, double, double> _functionToCall)
+	{
+		glfwSetCursorPosCallback(_window, GLFWcursorposfun(_functionToCall));
+	}
+
 	sfn DestoryWindow(const ptr<Window> _window)
 	{
 		using ElementType = decltype(Windows.begin());
@@ -109,16 +119,6 @@ namespace DGL
 		return;
 	}
 
-	sfn CanUseRawMouse()
-	{
-		return glfwRawMouseMotionSupported();
-	}
-
-	sfn CursorPositionUpdateBind(ptr<Window> _window, FnPtr<void, double, double> _functionToCall)
-	{
-		glfwSetCursorPosCallback(_window, GLFWcursorposfun(_functionToCall));
-	}
-
 	sfn DrawArrays(EPrimitives _primitive, gInt _startingIndex, gInt _numToRender)
 	{
 		glDrawArrays(GLenum(_primitive), _startingIndex, _numToRender);   // Starting from vertex 0; 3 vertices total -> 1 triangle.
@@ -129,15 +129,9 @@ namespace DGL
 		glDrawElements(GLenum(_primitive), _numElements, GLenum(_dataType), _offfsetAddressFromFirstIndex);
 	}
 
-	sfn KeyPressed(ptr<Window> _contextWindowRef, EKeyCodes _keyToCheck) -> bool
+	sfn GetCursorPosition(ptr<Window> _window, ptr<double> _xAxis, ptr<double> _yAxis)
 	{
-		return glfwGetKey(_contextWindowRef, int(_keyToCheck)) ;
-	}
-
-	template<typename... CodeType, typename = EKeyCodes>
-	sfn KeysPressed(ptr<Window> _contextWindowRef, CodeType... _otherKeys) -> bool
-	{
-		return ( KeyPressed(_contextWindowRef, _otherKeys) && ... ) == true;
+		glfwGetCursorPos(_window, _xAxis, _yAxis);
 	}
 
 	sfn GetMouseInputMode(ptr<Window> _contextWindowRef, EMouseMode _mode)
@@ -145,27 +139,14 @@ namespace DGL
 		return glfwGetInputMode(_contextWindowRef, GLenum(_mode));
 	}
 
-	sfn GetTime() -> TimeValDec
-	{
-		return glfwGetTime();
-	}
-
 	sfn GetRawTime() -> TimeValInt
 	{
 		return glfwGetTimerValue();
 	}
 
-	sfn GetCursorPosition(ptr<Window> _window, ptr<double> _xAxis, ptr<double> _yAxis)
+	sfn GetTime() -> TimeValDec
 	{
-		glfwGetCursorPos(_window, _xAxis, _yAxis);
-	}
-
-	sfn ResetCursor(ptr<Window> _window, gFloat _screenCenterWidth, gFloat _screenCenterHeight)
-	{
-		glfwSetCursorPos(_window, _screenCenterWidth, _screenCenterHeight);
-
-
-		glfwSetCursorPos(_window, 0, 0);
+		return glfwGetTime();
 	}
 
 	sfn InitalizeGLFW()
@@ -219,11 +200,30 @@ namespace DGL
 		}
 	}
 
+	sfn KeyPressed(ptr<Window> _contextWindowRef, EKeyCodes _keyToCheck) -> bool
+	{
+		return glfwGetKey(_contextWindowRef, int(_keyToCheck));
+	}
+
+	template<typename... CodeType, typename = EKeyCodes>
+	sfn KeysPressed(ptr<Window> _contextWindowRef, CodeType... _otherKeys) -> bool
+	{
+		return (KeyPressed(_contextWindowRef, _otherKeys) && ...) == true;
+	}
+
 	sfn PollEvents()
 	{
 		glfwPollEvents();
 
 		return;
+	}
+
+	sfn ResetCursor(ptr<Window> _window, gFloat _screenCenterWidth, gFloat _screenCenterHeight)
+	{
+		glfwSetCursorPos(_window, _screenCenterWidth, _screenCenterHeight);
+
+
+		glfwSetCursorPos(_window, 0, 0);
 	}
 
 	sfn RunBasicWindowLoop(const ptr<Window> _window)
@@ -279,17 +279,6 @@ namespace DGL
 	{
 		glClearColor(_colorToSet.Red, _colorToSet.Green, _colorToSet.Blue, _colorToSet.Alpha);
 	}
-	
-	template<typename ModeParam>
-	sfn SetInputMode(ptr<Window> _window, EMouseMode _mouseMode, ModeParam _modeParam)
-	{
-		glfwSetInputMode(_window, GLenum(_mouseMode), GLenum(_modeParam));
-	}
-
-	sfn RunTimingLoop()
-	{
-		return;
-	}
 
 	sfn SetCurrentContext(const ptr<Window> _window)
 	{
@@ -314,6 +303,12 @@ namespace DGL
 		}
 
 		return;
+	}
+
+	template<typename ModeParam>
+	sfn SetInputMode(ptr<Window> _window, EMouseMode _mouseMode, ModeParam _modeParam)
+	{
+		glfwSetInputMode(_window, GLenum(_mouseMode), GLenum(_modeParam));
 	}
 
 	sfn SetPolygonMode(EFace _desiredFaces, ERenderMode _desiredMode)

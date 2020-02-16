@@ -36,19 +36,17 @@ namespace DGL
 
 	// Default Shaders
 
-	ID<ShaderProgram> RawShader               ,
-		              SimpleShader            ,
-		              SimpleShader_Transformed ;
+	ID<ShaderProgram> RawShader   ,
+		              SimpleShader ;
 
-	ID<CoordSpace> ScreenSpaceVarID;
-
+	
 
 	// Forward Declarations
 
-	sfn GetShaderInfo    (    ID<Shader       >  _shader               ,       gSize       _logLength        , ptr<gSize> _infoLengthRef      , RawString<gChar> _infoLogRef) -> void;
-	sfn QueryShader      (    ID<Shader       >  _shaderToQuery        ,       EShaderInfo _shaderInfoDesired, ptr<gInt > _requestedInfoObject                              ) -> void;
-	sfn MakeShader       (Ref(ID<Shader       >) _shaderIDHolder       ,       EShaderType _typeOfShader , uInt64 _numberOfStringElements, ptr<RawString<const gChar>> _sourceCode, ptr<const gInt> _lengthsOfStrings) -> void;
-	sfn MakeShaderProgram(Ref(ID<ShaderProgram>) _shaderProgramIDHolder, const ID<Shader>  _vertexShader, const ID<Shader> _fragShader) -> void;
+	sfn GetShaderInfo    (    ID<Shader       >  _shader               ,       gSize       _logLength        ,       ptr<gSize> _infoLengthRef      , RawString<gChar> _infoLogRef                                              ) -> void;
+	sfn QueryShader      (    ID<Shader       >  _shaderToQuery        ,       EShaderInfo _shaderInfoDesired,       ptr<gInt > _requestedInfoObject                                                                            ) -> void;
+	sfn MakeShader       (Ref(ID<Shader       >) _shaderIDHolder       ,       EShaderType _typeOfShader     ,       uInt64 _numberOfStringElements , ptr<RawString<const gChar>> _sourceCode, ptr<const gInt> _lengthsOfStrings) -> void;
+	sfn MakeShaderProgram(Ref(ID<ShaderProgram>) _shaderProgramIDHolder, const ID<Shader>  _vertexShader     , const ID<Shader> _fragShader                                                                                     ) -> void;
 
 
 
@@ -60,7 +58,7 @@ namespace DGL
 
 		glGetProgramiv(_shaderToQueryForUniforms, GL_ACTIVE_UNIFORMS, &uniforms);
 
-		for (int i = 0; i < uniforms; i++)
+		for (int uniformIndex = 0; uniformIndex < uniforms; uniformIndex++)
 		{
 			int name_len = -1, num = -1;
 
@@ -68,7 +66,7 @@ namespace DGL
 
 			char name[100];
 
-			glGetActiveUniform(_shaderToQueryForUniforms, GLuint(i), sizeof(name) - 1, &name_len, &num, &type, name);
+			glGetActiveUniform(_shaderToQueryForUniforms, GLuint(uniformIndex), sizeof(name) - 1, &name_len, &num, &type, name);
 
 			name[name_len] = 0;
 		}
@@ -264,47 +262,6 @@ namespace DGL
 		}
 	}
 
-	sfn LoadRawShader()
-	{
-		ID<Shader> VertexShader  ;
-		ID<Shader> FragmentShader;
-
-		MakeShader(VertexShader  , EShaderType::Vertex  , 1, Address(DGL::RawVertextShaderSource ), NULL);
-		MakeShader(FragmentShader, EShaderType::Fragment, 1, Address(DGL::RawFragmentShaderSource), NULL);
-
-		DGL::MakeShaderProgram(RawShader, VertexShader, FragmentShader);
-
-		DGL::DeleteShader(VertexShader  );
-		DGL::DeleteShader(FragmentShader);
-
-		return;
-	}
-
-	sfn LoadSimpleShader()
-	{
-		SimpleShader = LoadShaders("SimpleVertexShader.vert", "SimpleFragmentShader.frag");
-
-		return;
-	}
-
-	sfn LoadSimpleShader_Transformed()
-	{
-		SimpleShader_Transformed = LoadShaders("SimpleTransform.vert", "SingleColor.frag");
-
-		ScreenSpaceVarID = DGL::GetUniformVariable(DGL::SimpleShader_Transformed, "modelViewProjection");
-
-		return;
-	}
-
-	sfn LoadDefaultShaders()
-	{
-		LoadRawShader               ();
-		LoadSimpleShader            ();
-		LoadSimpleShader_Transformed();
-
-		return;
-	}
-
 	sfn MakeShader
 	(
 		Ref(ID<Shader>)             _shaderIDHolder        , 
@@ -363,7 +320,8 @@ namespace DGL
 		return;
 	}
 
-	sfn SetUniformVariable_MatrixVariableArray(const ID<Matrix> _matrixID, const gSize _numMatricies, const EBool _shouldTransposeValues, ptr<const float> _dataPtr)
+	// MVA: MatrixVariableArray
+	sfn SetUniformVariable_MVA(const ID<Matrix> _matrixID, const gSize _numMatricies, const EBool _shouldTransposeValues, ptr<const float> _dataPtr)
 	{
 		glUniformMatrix4fv(_matrixID, _numMatricies, GLenum(_shouldTransposeValues), _dataPtr);
 
@@ -373,6 +331,62 @@ namespace DGL
 	sfn UseProgramShader(ID<ShaderProgram> _shaderProgramToUse)
 	{
 		glUseProgram(_shaderProgramToUse);
+
+		return;
+	}
+
+
+	namespace SS_Transformed
+	{
+		ID<ShaderProgram> Shader;
+
+		ID<CoordSpace> ScreenSpaceVarID;
+
+		sfn UpdateShader(Ref(CoordSpace) _screenSpace)
+		{
+			SetUniformVariable_MVA(ScreenSpaceVarID, 1, DGL::EBool::False, Address(_screenSpace[0][0]));
+
+			return;
+		}
+
+		sfn LoadShader()
+		{
+			Shader = LoadShaders("SimpleTransform.vert", "SingleColor.frag");
+
+			ScreenSpaceVarID = DGL::GetUniformVariable(Shader, "ScreenSpaceTransform");
+
+			return;
+		}
+	}
+
+	sfn LoadRawShader()
+	{
+		ID<Shader> VertexShader;
+		ID<Shader> FragmentShader;
+
+		MakeShader(VertexShader, EShaderType::Vertex, 1, Address(DGL::RawVertextShaderSource), NULL);
+		MakeShader(FragmentShader, EShaderType::Fragment, 1, Address(DGL::RawFragmentShaderSource), NULL);
+
+		MakeShaderProgram(RawShader, VertexShader, FragmentShader);
+
+		DeleteShader(VertexShader);
+		DeleteShader(FragmentShader);
+
+		return;
+	}
+
+	sfn LoadSimpleShader()
+	{
+		SimpleShader = LoadShaders("SimpleVertexShader.vert", "SimpleFragmentShader.frag");
+
+		return;
+	}
+
+	sfn LoadDefaultShaders()
+	{
+		                LoadRawShader   ();
+		                LoadSimpleShader();
+		SS_Transformed::LoadShader      ();
 
 		return;
 	}
