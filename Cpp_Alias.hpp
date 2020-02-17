@@ -12,24 +12,27 @@ This merely removes the need to use operators I don't like and wraps them in eas
 
 #pragma once
 
-#include <algorithm >
-#include <chrono    >
-#include <cstdarg   >
-#include <cstddef>
-#include <exception >
-#include <fstream   >
-#include <functional>
-#include <iostream  >
-#include <cmath     >
-#include <memory    >
-#include <queue     >
-#include <sstream   >
-#include <stdexcept >
-#include <string    >
-#include <vector    >
-#include <thread    >
-#include <tuple     >
-#include <utility   >
+#include <algorithm   >
+#include <chrono      >
+#include <cstdarg     >   
+#include <cstddef     >
+#include <exception   >
+#include <forward_list>
+#include <fstream     >
+#include <functional  >
+#include <iostream    >
+#include <cmath       >
+#include <map         >
+#include <memory      >
+#include <queue       >
+#include <sstream     >
+#include <stdexcept   >
+#include <string      >
+#include <vector      >
+#include <thread      >
+#include <tuple       >
+#include <typeindex   >
+#include <utility     >
 
 
 

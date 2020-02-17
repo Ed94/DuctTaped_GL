@@ -80,8 +80,8 @@ namespace Execution
 	TimeValDec CycleStart                     ,    // Snapshot of cycle loop start time. 
 		       CycleEnd                       ,    // Snapshot of cycle loop end   time. 
 		       DeltaTime                      ,    // Delta between last cycle start and end. 
-		       InputInterval   = 1.0f / 576.0f,    // Interval per second to complete the input   process of the cycle.
-		       PhysicsInterval = 1.0f / 288.0f,    // Interval per second to complete the physics process of the cycle. 
+		       InputInterval   = 1.0f / 400.0f,    // Interval per second to complete the input   process of the cycle.
+		       PhysicsInterval = 1.0f / 240.0f,    // Interval per second to complete the physics process of the cycle. 
 		       RenderInterval  = 1.0f / 144.0f ;   // Interval per second to complete the render  process of the cycle.
 
 	ptr<Window> DefaultWindow;   // Default window to use for execution.
@@ -97,6 +97,13 @@ namespace Execution
 
 	ActionQueue ActionsToComplete;   // Actions queue to run during the physics process of the cycle.
 
+	template<typename Type>
+	sfn RoundOff(Type _value, gInt _numDigitsToKeep) -> Type
+	{
+		uInt64 Rounder = pow(10, _numDigitsToKeep);
+
+		return round(_value * Rounder) / Rounder;
+	}
 
 
 	// Functionality
@@ -234,15 +241,15 @@ namespace Execution
 		return;
 	}
 
-	sfn ModifyCamSpeed(bool _isPositive)
+	sfn ModifyCamSpeed(bool _isPositive, gFloat _delta)
 	{
 		if (_isPositive)
 		{
-			CamMoveSpeed++;
+			CamMoveSpeed += CamMoveSpeed * _delta;
 		}
 		else
 		{
-			CamMoveSpeed--;
+			CamMoveSpeed -= CamMoveSpeed * _delta;
 		}
 	}
 
@@ -272,12 +279,12 @@ namespace Execution
 
 		if (KeyPressed(_currentWindowContext, EKeyCodes::UpArrow))
 		{
-			ActionsToComplete.AddToQueue(ModifyCamSpeedDelegate, true);
+			ActionsToComplete.AddToQueue(ModifyCamSpeedDelegate, true, PhysicsDelta);
 		}
 
 		if (KeysPressed(_currentWindowContext, EKeyCodes::DnArrow))
 		{
-			ActionsToComplete.AddToQueue(ModifyCamSpeedDelegate, false);
+			ActionsToComplete.AddToQueue(ModifyCamSpeedDelegate, false, PhysicsDelta);
 		}
 
 		if (KeyPressed(_currentWindowContext, EKeyCodes::F2))
