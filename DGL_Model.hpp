@@ -23,7 +23,7 @@ namespace DGL
 
 	using VertexList = std    ::vector < Vector3>;
 	using UVList     = std    ::vector < Vector2>;
-	using VecInt     = Generic::Vector3< gInt   >;
+	using VecInt     = Generic::Vector3< gUInt  >;
 	
 
 
@@ -70,7 +70,7 @@ namespace DGL
 
 	struct Face
 	{
-		VecInt Vertexes, Normals;
+		VecInt Vertexes, uvIndex, Normals;
 	};
 
 	struct FaceGenerator
@@ -109,7 +109,7 @@ namespace DGL
 			{
 				for (int index = 0; index < uvIndexes.size(); index++)
 				{
-					//generated.UVs[index] = uvIndexes.at(index);
+					generated.uvIndex[index] = uvIndexes.at(index);
 				}
 			}
 			if (normals.size() != 0)
@@ -118,6 +118,15 @@ namespace DGL
 				{
 					generated.Normals[index] = normals.at(index);
 				}
+			}
+
+			if (uvIndexes.size() == 0)
+			{
+				generated.uvIndex = VecInt(0, 0, 0);
+			}
+			if (normals.size() == 0)
+			{
+				generated.Normals = VecInt(0, 0, 0);
 			}
 
 			return generated;
@@ -322,24 +331,26 @@ namespace DGL
 
 			BufferData(Address(Verticies[0]), Verticies.size() * sizeof(Vector3), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
 
+			if (VertNormals.size() != 0)
+			{
+				BindBuffer(EBufferTarget::VertexAttributes, NBO);
 
-			BindBuffer(EBufferTarget::VertexAttributes, NBO);
+				BufferData(Address(VertNormals[0]), VertNormals.size() * sizeof(Vector3), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
+			}
 
-			BufferData(Address(VertNormals[0]), VertNormals.size() * sizeof(Vector3), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
-
-
+			
 			BindBuffer(EBufferTarget::VertexIndices, EBO);
 
 			BufferData(Address(Faces[0]), Faces.size() * sizeof(Face), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
+			//BufferData(Address(Indicies[0]), Indicies.size() * sizeof(gUInt), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
 
 
-			//BufferData(Address(Indicies[0]), Indicies.size() * sizeof(gInt), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
 
 			EnableVertexAttributeArray(0);
 			FormatVertexAttributes<Vector3>(0, EDataType::Float, ZeroOffset(), 3, EBool::False);
 
-			//EnableVertexAttributeArray(1);
-			//FormatVertexAttributes<Vector3>(1, EDataType::Float, ZeroOffset(), 3, EBool::False);
+			/*EnableVertexAttributeArray(1);
+			FormatVertexAttributes<gInt>(1, EDataType::Float, ZeroOffset(), 3, EBool::False);*/
 
 			BindVertexArray(0);
 		}
@@ -350,11 +361,11 @@ namespace DGL
 
 			BindBuffer(EBufferTarget::VertexIndices, EBO);
 
-			gInt Size; GetBufferParameterIV(EBufferTarget::VertexIndices, DGL::EBufferParam::Size, Address(Size));
+			gInt Size; GetBufferParameterIV(EBufferTarget::VertexIndices, EBufferParam::Size, Address(Size));
 
-			Size /= sizeof(Face);
+			Size /= sizeof(gFloat);
 
-			DrawElements(DGL::EPrimitives::Triangles, Size, EDataType::UnsignedInt, ZeroOffset());
+			DrawElements(EPrimitives::Triangles, Size, EDataType::UnsignedInt, ZeroOffset());
 
  			BindVertexArray(0);
 		}

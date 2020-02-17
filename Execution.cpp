@@ -80,16 +80,16 @@ namespace Execution
 	TimeValDec CycleStart                     ,    // Snapshot of cycle loop start time. 
 		       CycleEnd                       ,    // Snapshot of cycle loop end   time. 
 		       DeltaTime                      ,    // Delta between last cycle start and end. 
-		       InputInterval   = 1.0f / 240.0f,    // Interval per second to complete the input   process of the cycle.
-		       PhysicsInterval = 1.0f / 120.0f,    // Interval per second to complete the physics process of hte cycle. 
-		       RenderInterval  = 1.0f /  60.0f ;   // Interval per second to complete the render  process of the cycle.
+		       InputInterval   = 1.0f / 576.0f,    // Interval per second to complete the input   process of the cycle.
+		       PhysicsInterval = 1.0f / 288.0f,    // Interval per second to complete the physics process of the cycle. 
+		       RenderInterval  = 1.0f / 144.0f ;   // Interval per second to complete the render  process of the cycle.
 
 	ptr<Window> DefaultWindow;   // Default window to use for execution.
 
 	double CursorX, CursorY;   // Cursor axis position on the window.
 
 	gFloat CamMoveSpeed     = 8.0f,    // Rate at which the camera should move.
-		   CamRotationSpeed = 5.0f ;   // Rate at which the camera should rotate.
+		   CamRotationSpeed = 27.0f ;   // Rate at which the camera should rotate.
 
 	TimeValDec InputDelta   = 0.0,    // Current delta since last input   process. 
 		       PhysicsDelta = 0.0,    // Current delta since last physics process. 
@@ -118,13 +118,6 @@ namespace Execution
 	deduce MoveCamDelegate = Delegate<decltype(MoveCamera)>(MoveCamera);
 
 	// End of temp stuff...
-
-
-	//sfn PrepareRenderObjects() -> void
-	//{
-	//	
-
-	//}
 
 
 	// Currently Does everything required before entering the cycler.
@@ -241,7 +234,7 @@ namespace Execution
 		return;
 	}
 
-	sfn ModCamSpeed(bool _isPositive)
+	sfn ModifyCamSpeed(bool _isPositive)
 	{
 		if (_isPositive)
 		{
@@ -253,9 +246,7 @@ namespace Execution
 		}
 	}
 
-	deduce ModCamSpeedDelegate = Delegate<decltype(ModCamSpeed)>(ModCamSpeed);
-
-
+	deduce ModifyCamSpeedDelegate = Delegate<decltype(ModifyCamSpeed)>(ModifyCamSpeed);
 	deduce SetPolyModeDelegate = Delegate<decltype(SetPolygonMode)>(SetPolygonMode);
 
 	sfn InputProcedure(ptr<Window> _currentWindowContext)
@@ -264,26 +255,29 @@ namespace Execution
 		{
 			ECursorMode cursorMode = ECursorMode(GetMouseInputMode(DefaultWindow, EMouseMode::Cursor));
 
-			deduce delegate = Delegate<decltype(SetInputMode<ECursorMode>)>(SetInputMode<ECursorMode>);
+			deduce delegate    = Delegate<decltype(SetInputMode<ECursorMode>)>(SetInputMode<ECursorMode>);
+			deduce delegateRaw = Delegate<decltype(SetInputMode<EBool      >)>(SetInputMode<EBool      >);
 
 			if (cursorMode == ECursorMode::Normal || cursorMode == ECursorMode::Hidden)
 			{
-				ActionsToComplete.AddToQueue(delegate, _currentWindowContext, EMouseMode::Cursor, ECursorMode::Disable);
+				ActionsToComplete.AddToQueue(delegate   , _currentWindowContext, EMouseMode::Cursor  , ECursorMode::Disable);
+				ActionsToComplete.AddToQueue(delegateRaw, _currentWindowContext, EMouseMode::RawMouse, EBool      ::True   );
 			}
 			else
 			{
-				ActionsToComplete.AddToQueue(delegate, _currentWindowContext, EMouseMode::Cursor, ECursorMode::Normal);
+				ActionsToComplete.AddToQueue(delegate   , _currentWindowContext, EMouseMode::Cursor  , ECursorMode::Normal);
+				ActionsToComplete.AddToQueue(delegateRaw, _currentWindowContext, EMouseMode::RawMouse, EBool      ::False );
 			}
 		}
 
 		if (KeyPressed(_currentWindowContext, EKeyCodes::UpArrow))
 		{
-			ActionsToComplete.AddToQueue(ModCamSpeedDelegate, true);
+			ActionsToComplete.AddToQueue(ModifyCamSpeedDelegate, true);
 		}
 
 		if (KeysPressed(_currentWindowContext, EKeyCodes::DnArrow))
 		{
-			ActionsToComplete.AddToQueue(ModCamSpeedDelegate, false);
+			ActionsToComplete.AddToQueue(ModifyCamSpeedDelegate, false);
 		}
 
 		if (KeyPressed(_currentWindowContext, EKeyCodes::F2))
@@ -298,12 +292,12 @@ namespace Execution
 
 		if (CursorX != 0)
 		{
-			ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Yaw, CursorX * CamMoveSpeed, PhysicsDelta);
+			ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Yaw, CursorX * CamRotationSpeed, PhysicsDelta);
 		}
 
 		if (CursorY != 0)
 		{
-			ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Pitch, CursorY * CamMoveSpeed, PhysicsDelta);
+			ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Pitch, CursorY * CamRotationSpeed, PhysicsDelta);
 		}
 		
 		if (KeyPressed(_currentWindowContext, EKeyCodes::E))
@@ -337,6 +331,18 @@ namespace Execution
 		}
 	}
 
+
+	std::string windowTitle = "Assignment 1", deltaStr = "Delta: ", inputDeltaStr = "Input Delta: ", physicsDeltaStr = "Physics Delta: ", renderDeltaStr = "RenderDeltaStr: ";
+
+	std::stringstream somethingtoupdate;
+
+	sfn UpdateThisShit()
+	{
+		somethingtoupdate.str("");
+
+		somethingtoupdate << windowTitle << "  " << deltaStr << DeltaTime << "  " << inputDeltaStr << InputDelta << "  " << physicsDeltaStr << PhysicsDelta << "  " << renderDeltaStr << RenderDelta;
+	}
+
 	sfn PhysicsProcedure()
 	{
 		WorldCamera.UpdateCamera();
@@ -347,14 +353,22 @@ namespace Execution
 
 		//RAW_RotateLitCube(PhysicsDelta);
 
-		ProperCube::Rotate();
+		ProperCube::Rotate(PhysicsDelta);
+
+		UpdateThisShit();
 	}
+	
+	
 
 	sfn RenderProcedure() -> void
 	{
+		glfwSetWindowTitle(DefaultWindow, somethingtoupdate.str().c_str());
+
 		EnableVertexAttributeArray(VertexAttributeIndex);
 
 		EnableVertexAttributeArray(1);
+
+
 		//UseProgramShader(DGL::SS_Transformed::Shader);
 
 		//BindVertexArray(VertexArrayObj);

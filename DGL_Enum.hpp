@@ -123,8 +123,8 @@ namespace DGL
 		S         = GLFW_KEY_S         ,
 		W         = GLFW_KEY_W         ,
 		LeftShift = GLFW_KEY_LEFT_SHIFT,
-		Escape    = GLFW_KEY_ESCAPE,
-		UpArrow   = GLFW_KEY_UP,
+		Escape    = GLFW_KEY_ESCAPE    ,
+		UpArrow   = GLFW_KEY_UP        ,
 		DnArrow   = GLFW_KEY_DOWN
 	};
 

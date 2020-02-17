@@ -467,9 +467,9 @@ namespace ProperCube
 
 	CoordSpace transform = Matrix4x4(1.0f);
 
-	sfn Rotate()
+	sfn Rotate(gFloat _delta)
 	{
-		transform = DGL::Rotate(transform, 0.035f, Vector3(0, 1, 0));
+		transform = DGL::Rotate(transform, 3.5f * _delta, Vector3(0, 1, 0));
 	}
 
 	sfn Render(Ref(CoordSpace) _projection, Ref(CoordSpace) _viewport)
