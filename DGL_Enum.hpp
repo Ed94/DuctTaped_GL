@@ -17,6 +17,14 @@ namespace DGL
 		True  = GL_TRUE ,
 		False = GL_FALSE
 	};
+
+	enum class EBufferParam
+	{
+		AccessPolicy = GL_BUFFER_ACCESS, 
+		IsMapped     = GL_BUFFER_MAPPED, 
+		Size         = GL_BUFFER_SIZE  , 
+		UsagePattern = GL_BUFFER_USAGE
+	};
 	
 	enum class EBufferTarget
 	{
@@ -106,6 +114,8 @@ namespace DGL
 	enum class EKeyCodes
 	{
 		F1        = GLFW_KEY_F1        ,
+		F2        = GLFW_KEY_F2        ,
+		F3        = GLFW_KEY_F3        ,
 		A         = GLFW_KEY_A         ,
 		D         = GLFW_KEY_D         ,
 		E         = GLFW_KEY_E         ,
@@ -113,7 +123,9 @@ namespace DGL
 		S         = GLFW_KEY_S         ,
 		W         = GLFW_KEY_W         ,
 		LeftShift = GLFW_KEY_LEFT_SHIFT,
-		Escape    = GLFW_KEY_ESCAPE
+		Escape    = GLFW_KEY_ESCAPE,
+		UpArrow   = GLFW_KEY_UP,
+		DnArrow   = GLFW_KEY_DOWN
 	};
 
 	enum class EKeyState

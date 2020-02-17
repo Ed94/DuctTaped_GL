@@ -43,6 +43,7 @@ namespace Execution
 		using DGL::GetTime                    ;
 		using DGL::InitalizeGLEW              ;
 		using DGL::InitalizeGLFW              ;
+		using DGL::LoadDefaultShaders         ;
 		using DGL::KeyPressed                 ;	
 		using DGL::NotShared                  ;
 		using DGL::PollEvents                 ;
@@ -119,6 +120,12 @@ namespace Execution
 	// End of temp stuff...
 
 
+	//sfn PrepareRenderObjects() -> void
+	//{
+	//	
+
+	//}
+
 
 	// Currently Does everything required before entering the cycler.
 	sfn PrepWorkspace()
@@ -144,11 +151,26 @@ namespace Execution
 
 		// End of cursor stuff...
 
-		PrepareRenderObjects();
+		LoadDefaultShaders();
+
+		//PrepareRenderObjects();
 
 		SetPolygonMode(DGL::EFace::Front_and_Back, DGL::ERenderMode::Fill);
-	}
 
+		RAW_MakeCube();
+
+		RAW_MakeLightVAO();
+
+		ProperCube::Setup();
+
+
+		// TODO: Clean THIS
+
+		// Enable depth test
+		glEnable(GL_DEPTH_TEST);
+		// Accept fragment if it closer to the camera than the former one
+		glDepthFunc(GL_LESS);
+	}
 
 
 	/*
@@ -219,7 +241,22 @@ namespace Execution
 		return;
 	}
 
+	sfn ModCamSpeed(bool _isPositive)
+	{
+		if (_isPositive)
+		{
+			CamMoveSpeed++;
+		}
+		else
+		{
+			CamMoveSpeed--;
+		}
+	}
 
+	deduce ModCamSpeedDelegate = Delegate<decltype(ModCamSpeed)>(ModCamSpeed);
+
+
+	deduce SetPolyModeDelegate = Delegate<decltype(SetPolygonMode)>(SetPolygonMode);
 
 	sfn InputProcedure(ptr<Window> _currentWindowContext)
 	{
@@ -237,6 +274,26 @@ namespace Execution
 			{
 				ActionsToComplete.AddToQueue(delegate, _currentWindowContext, EMouseMode::Cursor, ECursorMode::Normal);
 			}
+		}
+
+		if (KeyPressed(_currentWindowContext, EKeyCodes::UpArrow))
+		{
+			ActionsToComplete.AddToQueue(ModCamSpeedDelegate, true);
+		}
+
+		if (KeysPressed(_currentWindowContext, EKeyCodes::DnArrow))
+		{
+			ActionsToComplete.AddToQueue(ModCamSpeedDelegate, false);
+		}
+
+		if (KeyPressed(_currentWindowContext, EKeyCodes::F2))
+		{
+			ActionsToComplete.AddToQueue(SetPolyModeDelegate, DGL::EFace::Front_and_Back, DGL::ERenderMode::Line);
+		}
+
+		if (KeyPressed(_currentWindowContext, EKeyCodes::F3))
+		{
+			ActionsToComplete.AddToQueue(SetPolyModeDelegate, DGL::EFace::Front_and_Back, DGL::ERenderMode::Fill);
 		}
 
 		if (CursorX != 0)
@@ -280,8 +337,6 @@ namespace Execution
 		}
 	}
 
-
-
 	sfn PhysicsProcedure()
 	{
 		WorldCamera.UpdateCamera();
@@ -289,21 +344,33 @@ namespace Execution
 		UpdateScreenspace();
 
 		DGL::SS_Transformed::UpdateShader(Screenspace);
-	}
 
-	
+		//RAW_RotateLitCube(PhysicsDelta);
+
+		ProperCube::Rotate();
+	}
 
 	sfn RenderProcedure() -> void
 	{
 		EnableVertexAttributeArray(VertexAttributeIndex);
 
-		UseProgramShader(DGL::SS_Transformed::Shader);
+		EnableVertexAttributeArray(1);
+		//UseProgramShader(DGL::SS_Transformed::Shader);
 
-		BindVertexArray(VertexArrayObj);
+		//BindVertexArray(VertexArrayObj);
 
-		DrawElements(EPrimitives::Triangles, 6, EDataType::UnsignedInt, ZeroOffset());
+		//DrawElements(EPrimitives::Triangles, 6, EDataType::UnsignedInt, ZeroOffset());
+
+		RAW_RenderLight(WorldCamera.Perspective, WorldCamera.Viewport);
+
+
+		//RAW_RenderLitCube(WorldCamera.Perspective, WorldCamera.Viewport);
+
+		ProperCube::Render(WorldCamera.Perspective, WorldCamera.Viewport);
 
 		DisableVertexAttributeArray(VertexAttributeIndex);
+
+		DisableVertexAttributeArray(1);
 	}
 	
 

@@ -26,6 +26,24 @@ namespace DGL
 	template<typename ReferenceType>
 	using ID = gUInt;
 
+	// ID Reference Types
+
+	class VertexBuffer ;
+	class NormalBuffer;
+	class Vec3       ;
+	class Matrix       ;
+	class Shader       ;
+	class ShaderProgram;
+	class VertexArray ;
+	class ElementBuffer;
+
+
+
+	using Matrix4x4 = glm::mat4;
+
+	using Vector2 = glm::vec2;
+	using Vector3 = glm::vec3;
+	using Vector4 = glm::vec4;
 
 	struct LinearColor
 	{
@@ -33,19 +51,10 @@ namespace DGL
 
 		LinearColor(gFloatClamped _red, gFloatClamped _green, gFloatClamped _blue, gFloatClamped _alpha) :
 			Red(_red), Green(_green), Blue(_blue), Alpha(_alpha) {};
+
+		sfn Vector() -> Vector3
+		{
+			return Vector3(Red, Green, Blue);
+		}
 	};
-
-	// ID Reference Types
-
-	class Buffer       ;
-	class Matrix       ;
-	class Shader       ;
-	class ShaderProgram;
-	class VertexBuffer ;
-	class ElementBuffer;
-
-	using Matrix4x4 = glm::mat4;
-
-	using Vector3 = glm::vec3;
-	using Vector4 = glm::vec4;
 }

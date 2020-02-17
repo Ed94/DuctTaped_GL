@@ -65,6 +65,11 @@ namespace DGL
 		return glm::rotate(_matrix, _rotationAngleAmount, _axis);
 	}
 
+	sfn Scale(const Matrix4x4 _matrix, Vector3 _scaleBy)
+	{
+		return glm::scale(_matrix, _scaleBy);
+	}
+
 	template<typename Type>
 	sfn ToRadians(const Ref(Type) _degrees) -> Type
 	{
@@ -90,8 +95,8 @@ namespace DGL
 		gFloat 
 			   AspectRatio       = 16.0f / 10.0f,
 			   FieldOfView       = 90.0f        ,
-			   NearClippingPlane = 0.1f         ,
-			   FarClippingPlane  = 100.0f        ;
+			   NearClippingPlane = 0.01f        ,
+			   FarClippingPlane  = 1000.0f       ;
 
 		Vector3 CameraPosition( 0, 0,  2),
 			    LookAtPosition( 0, 0,  0),
@@ -216,32 +221,21 @@ namespace DGL
 					Pitch = -89.9f;
 				}
 
-				break;
+				return;
 			}
 			case ERotationAxis::Roll:
 			{
 				Roll += _rotationAmount * _deltaTime;
 
-				if (Roll > 89.9f)
-				{
-					Roll = 89.9f;
-				}
-				else if (Roll < -89.9f)
-				{
-					Roll = -89.9f;
-				}
-
-				break;
+				return;
 			}
 			case ERotationAxis::Yaw:
 			{
 				Yaw += _rotationAmount * _deltaTime;
 
-				break;
+				return;
 			}
 			}
-
-			return;
 		}
 
 

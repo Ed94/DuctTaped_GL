@@ -31,7 +31,7 @@ namespace Actions
 	public:
 		AAction(ActionType _actionToAssign, ActionParams... _params) :
 			action(_actionToAssign),
-			params(_params...)
+			params(_params...     )
 		{};
 
 	private:

@@ -15,7 +15,7 @@
 
 namespace DGL
 {
-	sfn BindBuffer(const EBufferTarget _targetType, const ID<Buffer> _buffer)
+	sfn BindBuffer(const EBufferTarget _targetType, const ID<VertexBuffer> _buffer)
 	{
 		glBindBuffer(GLenum(_targetType), _buffer);
 
@@ -37,6 +37,11 @@ namespace DGL
 		return;
 	}
 
+	sfn BufferData(DataPtr _data,  gSize _sizeOfData, const EBufferTarget _targetType, const EBufferUsage _usageType)
+	{
+		glBufferData(GLenum(_targetType), _sizeOfData, _data, GLenum(_usageType));
+	}
+
 	template<typename... Type, typename = EFrameBuffer>
 	sfn ClearBuffer(const Type... _buffersToClear)
 	{
@@ -48,6 +53,16 @@ namespace DGL
 	sfn DisableVertexAttributeArray(const gInt _vertexAttributeArrayIndex)
 	{
 		glDisableVertexAttribArray(_vertexAttributeArrayIndex);
+	}
+
+	sfn DrawArrays(EPrimitives _primitive, gInt _startingIndex, gInt _numToRender)
+	{
+		glDrawArrays(GLenum(_primitive), _startingIndex, _numToRender);   // Starting from vertex 0; 3 vertices total -> 1 triangle.
+	}
+
+	sfn DrawElements(EPrimitives _primitive, gSize _numElements, EDataType _dataType, DataPtr _offfsetAddressFromFirstIndex)
+	{
+		glDrawElements(GLenum(_primitive), _numElements, GLenum(_dataType), _offfsetAddressFromFirstIndex);
 	}
 
 	sfn EnableVertexAttributeArray(const gInt _vertexAttributeArrayIndex)
@@ -86,6 +101,13 @@ namespace DGL
 	sfn GenerateVertexBuffers(ptr<gUInt> __referenceRetainerToBuffer, uInt64 _numOfObjectsToReserveFor)
 	{
 		glGenVertexArrays(_numOfObjectsToReserveFor, __referenceRetainerToBuffer);
+
+		return;
+	}
+
+	sfn GetBufferParameterIV(EBufferTarget _target, EBufferParam _param, ptr<gInt> _data)
+	{
+		glGetBufferParameteriv(GLenum(_target), GLenum(_param), _data);
 
 		return;
 	}

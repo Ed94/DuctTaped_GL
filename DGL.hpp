@@ -13,6 +13,7 @@
 #include "DGL_Shader.hpp"
 #include "DGL_Buffers.hpp"
 #include "DGL_Space.hpp"
+#include "DGL_Model.hpp"
 
 // Non-Standard C++
 #include "Cpp_Alias.hpp"
@@ -119,15 +120,7 @@ namespace DGL
 		return;
 	}
 
-	sfn DrawArrays(EPrimitives _primitive, gInt _startingIndex, gInt _numToRender)
-	{
-		glDrawArrays(GLenum(_primitive), _startingIndex, _numToRender);   // Starting from vertex 0; 3 vertices total -> 1 triangle.
-	}
-
-	sfn DrawElements(EPrimitives _primitive, gSize _numElements, EDataType _dataType, DataPtr _offfsetAddressFromFirstIndex)
-	{
-		glDrawElements(GLenum(_primitive), _numElements, GLenum(_dataType), _offfsetAddressFromFirstIndex);
-	}
+	
 
 	sfn GetCursorPosition(ptr<Window> _window, ptr<double> _xAxis, ptr<double> _yAxis)
 	{
@@ -329,4 +322,10 @@ namespace DGL
 
 		return;
 	}
+
+
+	// RawTape
+
+
+	
 }

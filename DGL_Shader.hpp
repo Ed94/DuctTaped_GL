@@ -328,6 +328,13 @@ namespace DGL
 		return;
 	}
 
+	sfn SetUniformVariable_Vector3(const ID<Vec3> _ID, const gSize _numColor3, ptr<const gFloat> _dataPtr)
+	{
+		glUniform3fv(_ID, _numColor3, _dataPtr);
+
+		return;
+	}
+
 	sfn UseProgramShader(ID<ShaderProgram> _shaderProgramToUse)
 	{
 		glUseProgram(_shaderProgramToUse);
@@ -359,12 +366,105 @@ namespace DGL
 		}
 	}
 
+	namespace Basic_LightingShader
+	{
+		ID<ShaderProgram> Shader;
+
+		ID<CoordSpace> ScreenSpaceVarID;
+
+		ID<Vec3> ObjectColorID, LightColorID;
+
+		sfn LoadShader()
+		{
+			Shader = LoadShaders("SimpleTransform.vert", "BasicLighting.frag");
+
+			ScreenSpaceVarID = GetUniformVariable(Shader, "ScreenSpaceTransform");
+
+			ObjectColorID = GetUniformVariable(Shader, "ObjectColor");
+			LightColorID  = GetUniformVariable(Shader, "LightColor" );
+		}
+
+		sfn SetupRender(Ref(CoordSpace) _cubeTransform, Ref(Vector3) _objectColor, Ref(Vector3) _lightColor)
+		{
+			UseProgramShader(Shader);
+
+			SetUniformVariable_MVA(ScreenSpaceVarID, 1, EBool::False, Address(_cubeTransform[0][0]));
+
+			SetUniformVariable_Vector3(ObjectColorID, 1, Address(_objectColor[0]));
+			SetUniformVariable_Vector3(LightColorID , 1, Address(_lightColor [0]));
+		}
+	}
+
+	namespace Basic_LampShader
+	{
+		ID<ShaderProgram> Shader;
+
+		ID<CoordSpace> ScreenSpaceVarID;
+
+		sfn LoadShader()
+		{
+			Shader = LoadShaders("SimpleTransform.vert", "BasicLamp.frag");
+
+			ScreenSpaceVarID = GetUniformVariable(Shader, "ScreenSpaceTransform");
+		}
+
+		sfn SetupLampRender(Ref(CoordSpace) _lampTransform)
+		{
+			UseProgramShader(Shader);
+
+			SetUniformVariable_MVA(ScreenSpaceVarID, 1, EBool::False, Address(_lampTransform[0][0]));	
+		}
+	}
+
+	namespace PhongShader
+	{
+		ID<ShaderProgram> ShaderID;
+
+		ID<CoordSpace> ModelScreenSpaceID, ModelSpaceID;
+
+		ID<Vec3> LightPositionID;
+
+		ID<Vec3> ObjectColorID, LightColorID;
+
+		sfn LoadShader()
+		{
+			ShaderID = LoadShaders("PhongShader.vert", "PhongShader.frag");
+
+			ModelScreenSpaceID = GetUniformVariable(ShaderID, "ModelScreenSpace");
+			ModelSpaceID       = GetUniformVariable(ShaderID, "ModelSpace"      );
+
+			ObjectColorID   = GetUniformVariable(ShaderID, "ObjectColor"    );
+			LightColorID    = GetUniformVariable(ShaderID, "LightColor"     );
+			LightPositionID = GetUniformVariable(ShaderID, "LightPositionID");
+		}
+
+		sfn SetupRender
+		(
+			Ref(CoordSpace) _screenSapceTransform, 
+			Ref(CoordSpace) _objectTransform     , 
+ 			Ref(Vector3   ) _objectColor         , 
+			Ref(Vector3   ) _lightPosition       , 
+			Ref(Vector3   ) _lightColor
+		)
+		{
+			UseProgramShader(ShaderID);
+
+			SetUniformVariable_MVA(ModelScreenSpaceID, 1, EBool::False, Address(_screenSapceTransform[0][0]));
+			SetUniformVariable_MVA(ModelSpaceID      , 1, EBool::False, Address(_objectTransform     [0][0]));
+
+			SetUniformVariable_Vector3(LightPositionID, 1, Address(_lightPosition[0]));
+
+			SetUniformVariable_Vector3(ObjectColorID, 1, Address(_objectColor[0]));
+			SetUniformVariable_Vector3(LightColorID , 1, Address(_lightColor [0]));
+		}
+	}
+
 	sfn LoadRawShader()
 	{
 		ID<Shader> VertexShader;
 		ID<Shader> FragmentShader;
 
-		MakeShader(VertexShader, EShaderType::Vertex, 1, Address(DGL::RawVertextShaderSource), NULL);
+		MakeShader(VertexShader  , EShaderType::Vertex  , 1, Address(DGL::RawVertextShaderSource ), NULL);
 		MakeShader(FragmentShader, EShaderType::Fragment, 1, Address(DGL::RawFragmentShaderSource), NULL);
 
 		MakeShaderProgram(RawShader, VertexShader, FragmentShader);
@@ -384,9 +484,12 @@ namespace DGL
 
 	sfn LoadDefaultShaders()
 	{
-		                LoadRawShader   ();
-		                LoadSimpleShader();
-		SS_Transformed::LoadShader      ();
+		                      LoadRawShader   ();
+		                      LoadSimpleShader();
+		SS_Transformed      ::LoadShader      ();
+		Basic_LampShader    ::LoadShader      ();
+		Basic_LightingShader::LoadShader      ();
+		PhongShader         ::LoadShader      ();
 
 		return;
 	}

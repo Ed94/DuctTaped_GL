@@ -15,10 +15,12 @@ This merely removes the need to use operators I don't like and wraps them in eas
 #include <algorithm >
 #include <chrono    >
 #include <cstdarg   >
+#include <cstddef>
 #include <exception >
 #include <fstream   >
 #include <functional>
 #include <iostream  >
+#include <cmath     >
 #include <memory    >
 #include <queue     >
 #include <sstream   >
@@ -149,3 +151,4 @@ sfn ErrorRuntime(const Ref(std::runtime_error) _error)
 
 	return;
 }
+
