@@ -336,23 +336,9 @@ sfn RAW_MakeCube()
 	DGL::BufferData<CubeElements>(Address(DefaultCubeElements), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
 
 
-
 	DGL::FormatVertexAttributes<Vertex3>(0, EDataType::Float, ZeroOffset(), Vertex3::ValueCount(), EBool::False);
 
 	DGL::EnableVertexAttributeArray(0);
-
-	//DGL::FormatVertexAttributes<VertPhong>(1, EDataType::Float, Offset(Vertex3::ValueCount()), Vertex3::ValueCount(), EBool::False);
-
-	//DGL::EnableVertexAttributeArray(1);
-
-	/*glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);*/
-
-	/*glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);*/
-
-
-	//DGL::BindBuffer(EBufferTarget::VertexAttributes, 0);   // Dunno. Prob unbinding...
 }
 
 sfn RAW_RenderCube()
@@ -407,9 +393,9 @@ sfn RAW_LightRotate(gFloat _delta)
 
 	if (test)
 	{
-		LightPosition.x += 0.001f + _delta;
+		LightPosition.x += 0.021f + _delta;
 
-		if (LightPosition.x > 4)
+		if (LightPosition.x > 10)
 		{
 			test = false;
 		}
@@ -419,9 +405,9 @@ sfn RAW_LightRotate(gFloat _delta)
 	}
 	else
 	{
-		LightPosition.x -= 0.001f + _delta;
+		LightPosition.x -= 0.021f + _delta;
 
-		if (LightPosition.x < -4)
+		if (LightPosition.x < -10)
 		{
 			test = true;
 		}
@@ -495,7 +481,7 @@ sfn RAW_RenderLitCube(CoordSpace _projection, CoordSpace _viewport)
 
 namespace ProperCube
 {
-	Model model("Cube.obj");
+	Model model("torus.obj");
 
 	Vector3 position = Vector3(0.0f);
 
@@ -514,7 +500,7 @@ namespace ProperCube
 
 		Vector3 lightColor = LightColor.Vector();
 
-		DGL::PhongShader::SetupRender
+		DGL::PhongShader::Use
 		(
 			_projection    ,
 			_viewport      ,

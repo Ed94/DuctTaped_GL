@@ -24,6 +24,8 @@ namespace DGL
 	using VertexList = std    ::vector < Vector3>;
 	using UVList     = std    ::vector < Vector2>;
 	using VecInt     = Generic::Vector3< gUInt  >;
+	using VIndexList = std    ::vector < gInt   >;
+
 	
 
 
@@ -65,28 +67,10 @@ namespace DGL
 
 	struct Face
 	{
-		VecInt Vertexes, UVs, Normals;
+		VecInt Vertexes, Normals;
 	};
 
-	struct FaceVertexIndex
-	{
-		gUInt Vertex, UV, Normal;
-
-		FaceVertexIndex() : Vertex(0), UV(0), Normal(0) {};
-
-		FaceVertexIndex(gUInt _vertex, gUInt _uv, gUInt _norm) : Vertex(_vertex), UV(_uv), Normal(_norm) {};
-	};
-
-	using VertexIndexList = Generic::Vector3<FaceVertexIndex>;
-
-
-	// A face primitive is a triangle.
-	//struct Face
-	//{
-	//	//FaceVertexIndex Indicies[3];
-
-	//	gInt Vertex[3], Normal[3], UV[3];
-	//};
+	using FaceList = std::vector<Face>;
 
 	struct FaceGenerator
 	{
@@ -119,42 +103,22 @@ namespace DGL
 
 				if (uvIndexes.size() > 0)
 				{
-					generated.UVs[index] = uvIndexes[index];
+					//generated.UVs[index] = uvIndexes[index];
 				}
 
 				if (normals.size() > 0)
 				{
 					generated.Normals[index] = normals[index];
 				}
-
-
-
-				/*generated.Vertex[index] = vertIndexes[index];
-
-				if (uvIndexes.size() > 0)
-				{
-					generated.UV[index] = uvIndexes[index];
-				}
-
-				if (normals.size() > 0)
-				{
-					generated.Normal[index] = normals[index];
-				}*/
 			}
 
 			return generated;
 		}
 	};
 
-
-	
-
-
 	struct Model
 	{
-		using FaceList   = std::vector< Face>;
-		using VIndexList = std::vector< gInt>;
-
+		
 		struct VN
 		{
 			Vector3 Vertex, Normal;
@@ -328,6 +292,49 @@ namespace DGL
 			fileBuffer.close();
 		}
 
+		template<typename Type>
+		sfn RoundOff(Type _value, gInt _numDigitsToKeep) -> Type
+		{
+			uInt64 Rounder = pow(10, _numDigitsToKeep);
+
+			return round(_value * Rounder) / Rounder;
+		}
+
+		sfn GenerateNormals()
+		{
+			for (int index = 0; index < Faces.size(); index++)
+			{
+				int vertexIndex1 = Faces[index].Vertexes[0], 
+					vertexIndex2 = Faces[index].Vertexes[1],
+					vertexIndex3 = Faces[index].Vertexes[2];
+
+				Vector3 edge1 = Verticies[vertexIndex2] - Verticies[vertexIndex1],
+					    edge2 = Verticies[vertexIndex3] - Verticies[vertexIndex2],
+					    
+					normal = GetDirection(GetCrossNormal(edge1, edge2));
+
+
+				normal[0] = RoundOff(normal[0], 7);
+				normal[1] = RoundOff(normal[1], 7);
+				normal[2] = RoundOff(normal[2], 7);
+
+				bool normalExists = false;
+
+				for (int normIndex = 0; normIndex < VertNormals.size(); normIndex++)
+				{ 
+					if (normal == VertNormals[normIndex])
+					{
+						normalExists = true;
+					}
+				}
+
+				if (!normalExists)
+				{
+					VertNormals.push_back(normal);
+				}
+			}
+		}
+
 		// Hardcoded to only do the verticies and normals for now...
 		sfn Buffer()
 		{
@@ -336,15 +343,21 @@ namespace DGL
 			GenerateBuffers      (Address(NBO), 1);
 			GenerateBuffers      (Address(EBO), 1);
 
+
+			if (VertNormals.size() == 0)
+			{
+				GenerateNormals();
+			}
+			
 			BindVertexArray(VAO);
 
 			BindBuffer(EBufferTarget::VertexAttributes, VBO);
 
 			BufferData(Address(Verticies[0]), Verticies.size() * sizeof(Vector3), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
 
-			EnableVertexAttributeArray(0);
-
 			FormatVertexAttributes<Vector3>(0, EDataType::Float, ZeroOffset(), 3, EBool::False);
+
+			EnableVertexAttributeArray(0);
 
 			if (VertNormals.size() != 0)
 			{
@@ -352,10 +365,11 @@ namespace DGL
 
 				BufferData(Address(VertNormals[0]), VertNormals.size() * sizeof(Vector3), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
 
-				EnableVertexAttributeArray(1);
-
 				FormatVertexAttributes<Vector3>(1, EDataType::Float, ZeroOffset(), 3, EBool::False);
+
+				EnableVertexAttributeArray(1);
 			}
+
 
 			BindBuffer(EBufferTarget::VertexIndices, EBO);
 

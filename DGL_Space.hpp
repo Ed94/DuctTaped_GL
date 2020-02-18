@@ -273,7 +273,7 @@ namespace DGL
 			LookAtPosition, 
 			UpDirection, 
 			FrontDirection
-		);
+		);	
 
 		CoordSpace WorldSpace(Matrix4x4(1.0f));
 

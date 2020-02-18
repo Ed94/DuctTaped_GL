@@ -99,13 +99,7 @@ namespace Execution
 
 	ActionQueue ActionsToComplete;   // Actions queue to run during the physics process of the cycle.
 
-	template<typename Type>
-	sfn RoundOff(Type _value, gInt _numDigitsToKeep) -> Type
-	{
-		uInt64 Rounder = pow(10, _numDigitsToKeep);
-
-		return round(_value * Rounder) / Rounder;
-	}
+	
 
 
 	// Functionality

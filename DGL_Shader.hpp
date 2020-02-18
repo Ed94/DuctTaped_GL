@@ -460,7 +460,7 @@ namespace DGL
 			ViewPositionID  = GetUniformVariable(ShaderID, "ViewPosition" );
 		}
 
-		sfn SetupRender
+		sfn Use
 		(
 			Ref(CoordSpace) _projection          ,
 			Ref(CoordSpace) _viewport            ,
@@ -471,7 +471,7 @@ namespace DGL
 			Ref(Vector3   ) _viewPosition
 		)
 		{
-			CoordSpace inverseTransform = Inverse(_objectTransform);
+			CoordSpace inverseTransform = Inverse(_viewport * _objectTransform);
 
 			UseProgramShader(ShaderID);
 
