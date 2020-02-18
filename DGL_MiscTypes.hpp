@@ -29,12 +29,12 @@ namespace DGL
 	// ID Reference Types
 
 	class VertexBuffer ;
-	class NormalBuffer;
-	class Vec3       ;
+	class NormalBuffer ;
+	class Vec3         ;
 	class Matrix       ;
 	class Shader       ;
 	class ShaderProgram;
-	class VertexArray ;
+	class VertexArray  ;
 	class ElementBuffer;
 
 

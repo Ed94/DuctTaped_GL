@@ -194,7 +194,7 @@ namespace Actions
 		using QueueType = std::deque< ptr<IAction>>;
 
 		
-
+	public:
 		template<typename FunctionType, typename... ActionParams>
 		sfn AddToQueue(Delegate< FunctionType> _actionToQueue, ActionParams... _paramsForAction)
 		{
@@ -242,6 +242,8 @@ namespace Actions
 			return actionQueue.size() > 0;
 		}
 
+
+	private:
 
 		QueueType actionQueue;
 	};

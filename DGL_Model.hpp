@@ -63,33 +63,48 @@ namespace DGL
 		}
 	};
 
-	/*struct Face
-	{
-		VecInt Vertexes, UVs, Normals;
-	};*/
-
 	struct Face
 	{
-		VecInt Vertexes, uvIndex, Normals;
+		VecInt Vertexes, UVs, Normals;
 	};
+
+	struct FaceVertexIndex
+	{
+		gUInt Vertex, UV, Normal;
+
+		FaceVertexIndex() : Vertex(0), UV(0), Normal(0) {};
+
+		FaceVertexIndex(gUInt _vertex, gUInt _uv, gUInt _norm) : Vertex(_vertex), UV(_uv), Normal(_norm) {};
+	};
+
+	using VertexIndexList = Generic::Vector3<FaceVertexIndex>;
+
+
+	// A face primitive is a triangle.
+	//struct Face
+	//{
+	//	//FaceVertexIndex Indicies[3];
+
+	//	gInt Vertex[3], Normal[3], UV[3];
+	//};
 
 	struct FaceGenerator
 	{
-		using ComponentList = std::vector< gInt>;
+		using ComponentList = std::vector< gUInt>;
 
 		ComponentList vertIndexes, uvIndexes, normals;
 
-		sfn AddVertexIndex(gInt _index)
+		sfn AddVertexIndex(gUInt _index)
 		{
 			vertIndexes.push_back(_index);
 		}
 
-		sfn AddUVIndex(gInt _index)
+		sfn AddUVIndex(gUInt _index)
 		{
 			uvIndexes.push_back(_index);
 		}
 
-		sfn AddNormalIndex(gInt _index)
+		sfn AddNormalIndex(gUInt _index)
 		{
 			normals.push_back(_index);
 		}
@@ -98,35 +113,33 @@ namespace DGL
 		{
 			Face generated;
 
-			if (vertIndexes.size() != 0)
+			for (int index = 0; index < 3; index++)
 			{
-				for (int index = 0; index < vertIndexes.size(); index++)
-				{
-					generated.Vertexes[index] = vertIndexes.at(index);
-				}
-			}
-			if (uvIndexes.size() != 0)
-			{
-				for (int index = 0; index < uvIndexes.size(); index++)
-				{
-					generated.uvIndex[index] = uvIndexes.at(index);
-				}
-			}
-			if (normals.size() != 0)
-			{
-				for (int index = 0; index < normals.size(); index++)
-				{
-					generated.Normals[index] = normals.at(index);
-				}
-			}
+				generated.Vertexes[index] = vertIndexes[index];
 
-			if (uvIndexes.size() == 0)
-			{
-				generated.uvIndex = VecInt(0, 0, 0);
-			}
-			if (normals.size() == 0)
-			{
-				generated.Normals = VecInt(0, 0, 0);
+				if (uvIndexes.size() > 0)
+				{
+					generated.UVs[index] = uvIndexes[index];
+				}
+
+				if (normals.size() > 0)
+				{
+					generated.Normals[index] = normals[index];
+				}
+
+
+
+				/*generated.Vertex[index] = vertIndexes[index];
+
+				if (uvIndexes.size() > 0)
+				{
+					generated.UV[index] = uvIndexes[index];
+				}
+
+				if (normals.size() > 0)
+				{
+					generated.Normal[index] = normals[index];
+				}*/
 			}
 
 			return generated;
@@ -225,7 +238,7 @@ namespace DGL
 
 			deduce processFace = [&](Ref(stringstream) _faceStream)
 			{
-				FaceGenerator faceMade; gInt vertexIndex, textureIndex, normalIndex;
+				FaceGenerator faceMade; gUInt vertexIndex, textureIndex, normalIndex;
 
 				while (not _faceStream.eof())
 				{
@@ -325,33 +338,29 @@ namespace DGL
 
 			BindVertexArray(VAO);
 
-
-
 			BindBuffer(EBufferTarget::VertexAttributes, VBO);
 
 			BufferData(Address(Verticies[0]), Verticies.size() * sizeof(Vector3), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
+
+			EnableVertexAttributeArray(0);
+
+			FormatVertexAttributes<Vector3>(0, EDataType::Float, ZeroOffset(), 3, EBool::False);
 
 			if (VertNormals.size() != 0)
 			{
 				BindBuffer(EBufferTarget::VertexAttributes, NBO);
 
 				BufferData(Address(VertNormals[0]), VertNormals.size() * sizeof(Vector3), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
+
+				EnableVertexAttributeArray(1);
+
+				FormatVertexAttributes<Vector3>(1, EDataType::Float, ZeroOffset(), 3, EBool::False);
 			}
 
-			
 			BindBuffer(EBufferTarget::VertexIndices, EBO);
 
 			BufferData(Address(Faces[0]), Faces.size() * sizeof(Face), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
-			//BufferData(Address(Indicies[0]), Indicies.size() * sizeof(gUInt), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
-
-
-
-			EnableVertexAttributeArray(0);
-			FormatVertexAttributes<Vector3>(0, EDataType::Float, ZeroOffset(), 3, EBool::False);
-
-			/*EnableVertexAttributeArray(1);
-			FormatVertexAttributes<gInt>(1, EDataType::Float, ZeroOffset(), 3, EBool::False);*/
-
+			
 			BindVertexArray(0);
 		}
 
@@ -363,7 +372,7 @@ namespace DGL
 
 			gInt Size; GetBufferParameterIV(EBufferTarget::VertexIndices, EBufferParam::Size, Address(Size));
 
-			Size /= sizeof(gFloat);
+			Size /= sizeof(gInt);
 
 			DrawElements(EPrimitives::Triangles, Size, EDataType::UnsignedInt, ZeroOffset());
 

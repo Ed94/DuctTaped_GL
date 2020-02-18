@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="Cpp_Alias.hpp" />
+    <ClInclude Include="DGL_FundamentalTypes.hpp">
+      <Filter>Ducktape_GL</Filter>
+    </ClInclude>
+    <ClInclude Include="DGL_Shader.hpp">
+      <Filter>Ducktape_GL</Filter>
+    </ClInclude>
+    <ClInclude Include="DGL_Enum.hpp">
+      <Filter>Ducktape_GL</Filter>
+    </ClInclude>
+    <ClInclude Include="DGL_Buffers.hpp">
+      <Filter>Ducktape_GL</Filter>
+    </ClInclude>
+    <ClInclude Include="DGL_MiscTypes.hpp">
+      <Filter>Ducktape_GL</Filter>
+    </ClInclude>
+    <ClInclude Include="DGL.hpp">
+      <Filter>Ducktape_GL</Filter>
+    </ClInclude>
+    <ClInclude Include="DGL_Variable.hpp">
+      <Filter>Ducktape_GL</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderFromTut.hpp">
+      <Filter>Ducktape_GL</Filter>
+    </ClInclude>
+    <ClInclude Include="DGL_Space.hpp">
+      <Filter>Ducktape_GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Testing.hpp" />
+    <ClInclude Include="Actions.hpp" />
+    <ClInclude Include="DGL_Model.hpp">
+      <Filter>Ducktape_GL</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Execution.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Ducktape_GL">
+      <UniqueIdentifier>{dffb88da-bab3-4079-8f08-9bb1e7475f9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{05484b5d-cbf0-49d7-a593-8fffa98fadb3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="3.3.shader.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="3.3.shader.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="5.1.transform.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="5.1.transform.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="6.3.coordinate_systems.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="6.3.coordinate_systems.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="SimpleFragmentShader.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="SimpleTransform.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="SimpleVertexShader.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="SingleColor.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="BasicLighting.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="BasicLamp.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="PhongShader.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="PhongShader.frag">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>

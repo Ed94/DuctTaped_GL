@@ -60,6 +60,11 @@ namespace DGL
 		return glm::normalize(_vectorSpecified);
 	}
 
+	sfn Inverse(const Matrix4x4 _matrix)
+	{
+		return glm::inverse(_matrix);
+	}
+
 	sfn Rotate(const Matrix4x4 _matrix, gFloat _rotationAngleAmount, Vector3 _axis) -> Matrix4x4
 	{
 		return glm::rotate(_matrix, _rotationAngleAmount, _axis);

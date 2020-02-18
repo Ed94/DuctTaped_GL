@@ -88,6 +88,8 @@ namespace Execution
 
 	double CursorX, CursorY;   // Cursor axis position on the window.
 
+	bool CursorOff = true;
+
 	gFloat CamMoveSpeed     = 8.0f,    // Rate at which the camera should move.
 		   CamRotationSpeed = 27.0f ;   // Rate at which the camera should rotate.
 
@@ -199,7 +201,10 @@ namespace Execution
 
 				_inputProcedure(DefaultWindow);
 
-				ResetCursor(DefaultWindow, ScreenCenterWidth, ScreenCenterHeight);
+				if (CursorOff)
+				{
+					ResetCursor(DefaultWindow, ScreenCenterWidth, ScreenCenterHeight);
+				}
 
 				InputDelta = 0.0;
 			}
@@ -254,7 +259,7 @@ namespace Execution
 	}
 
 	deduce ModifyCamSpeedDelegate = Delegate<decltype(ModifyCamSpeed)>(ModifyCamSpeed);
-	deduce SetPolyModeDelegate = Delegate<decltype(SetPolygonMode)>(SetPolygonMode);
+	deduce SetPolyModeDelegate    = Delegate<decltype(SetPolygonMode)>(SetPolygonMode);
 
 	sfn InputProcedure(ptr<Window> _currentWindowContext)
 	{
@@ -269,11 +274,15 @@ namespace Execution
 			{
 				ActionsToComplete.AddToQueue(delegate   , _currentWindowContext, EMouseMode::Cursor  , ECursorMode::Disable);
 				ActionsToComplete.AddToQueue(delegateRaw, _currentWindowContext, EMouseMode::RawMouse, EBool      ::True   );
+
+				CursorOff = true;
 			}
 			else
 			{
 				ActionsToComplete.AddToQueue(delegate   , _currentWindowContext, EMouseMode::Cursor  , ECursorMode::Normal);
 				ActionsToComplete.AddToQueue(delegateRaw, _currentWindowContext, EMouseMode::RawMouse, EBool      ::False );
+
+				CursorOff = false;
 			}
 		}
 
@@ -297,14 +306,17 @@ namespace Execution
 			ActionsToComplete.AddToQueue(SetPolyModeDelegate, DGL::EFace::Front_and_Back, DGL::ERenderMode::Fill);
 		}
 
-		if (CursorX != 0)
+		if (CursorOff)
 		{
-			ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Yaw, CursorX * CamRotationSpeed, PhysicsDelta);
-		}
+			if (CursorX != 0)
+			{
+				ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Yaw, CursorX * CamRotationSpeed, PhysicsDelta);
+			}
 
-		if (CursorY != 0)
-		{
-			ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Pitch, CursorY * CamRotationSpeed, PhysicsDelta);
+			if (CursorY != 0)
+			{
+				ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Pitch, CursorY * CamRotationSpeed, PhysicsDelta);
+			}
 		}
 		
 		if (KeyPressed(_currentWindowContext, EKeyCodes::E))
@@ -336,6 +348,26 @@ namespace Execution
 		{
 			ActionsToComplete.AddToQueue(MoveCamDelegate, EDirection::Backward, CamMoveSpeed, PhysicsDelta);
 		}
+
+		if (KeyPressed(_currentWindowContext, EKeyCodes::I))
+		{
+			ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Pitch, -6.0f * CamRotationSpeed, PhysicsDelta);
+		}
+
+		if (KeyPressed(_currentWindowContext, EKeyCodes::K))
+		{
+			ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Pitch, 6.0f * CamRotationSpeed, PhysicsDelta);
+		}
+
+		if (KeyPressed(_currentWindowContext, EKeyCodes::J))
+		{
+			ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Yaw, -6.0f * CamRotationSpeed, PhysicsDelta);
+		}
+
+		if (KeyPressed(_currentWindowContext, EKeyCodes::L))
+		{
+			ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Yaw, 6.0f * CamRotationSpeed, PhysicsDelta);
+		}
 	}
 
 
@@ -360,6 +392,8 @@ namespace Execution
 
 		//RAW_RotateLitCube(PhysicsDelta);
 
+		RAW_LightRotate(PhysicsDelta);
+
 		ProperCube::Rotate(PhysicsDelta);
 
 		UpdateThisShit();
@@ -371,27 +405,9 @@ namespace Execution
 	{
 		glfwSetWindowTitle(DefaultWindow, somethingtoupdate.str().c_str());
 
-		EnableVertexAttributeArray(VertexAttributeIndex);
-
-		EnableVertexAttributeArray(1);
-
-
-		//UseProgramShader(DGL::SS_Transformed::Shader);
-
-		//BindVertexArray(VertexArrayObj);
-
-		//DrawElements(EPrimitives::Triangles, 6, EDataType::UnsignedInt, ZeroOffset());
-
 		RAW_RenderLight(WorldCamera.Perspective, WorldCamera.Viewport);
 
-
-		//RAW_RenderLitCube(WorldCamera.Perspective, WorldCamera.Viewport);
-
-		ProperCube::Render(WorldCamera.Perspective, WorldCamera.Viewport);
-
-		DisableVertexAttributeArray(VertexAttributeIndex);
-
-		DisableVertexAttributeArray(1);
+		ProperCube::Render(WorldCamera.Perspective, WorldCamera.Viewport, WorldCamera.Position);
 	}
 	
 

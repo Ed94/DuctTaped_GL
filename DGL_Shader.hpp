@@ -1,9 +1,10 @@
 #pragma once
 
 //DGL
+#include "DGL_Enum.hpp"
 #include "DGL_FundamentalTypes.hpp"
 #include "DGL_MiscTypes.hpp"
-#include "DGL_Enum.hpp"
+#include "DGL_Buffers.hpp"
 #include "DGL_Space.hpp"
 
 
@@ -384,7 +385,7 @@ namespace DGL
 			LightColorID  = GetUniformVariable(Shader, "LightColor" );
 		}
 
-		sfn SetupRender(Ref(CoordSpace) _cubeTransform, Ref(Vector3) _objectColor, Ref(Vector3) _lightColor)
+		sfn Use(Ref(CoordSpace) _cubeTransform, Ref(Vector3) _objectColor, Ref(Vector3) _lightColor)
 		{
 			UseProgramShader(Shader);
 
@@ -392,6 +393,15 @@ namespace DGL
 
 			SetUniformVariable_Vector3(ObjectColorID, 1, Address(_objectColor[0]));
 			SetUniformVariable_Vector3(LightColorID , 1, Address(_lightColor [0]));
+
+			EnableVertexAttributeArray(0);
+			EnableVertexAttributeArray(1);
+		}
+
+		sfn Stop()
+		{
+			DisableVertexAttributeArray(0);
+			DisableVertexAttributeArray(1);
 		}
 	}
 
@@ -413,6 +423,15 @@ namespace DGL
 			UseProgramShader(Shader);
 
 			SetUniformVariable_MVA(ScreenSpaceVarID, 1, EBool::False, Address(_lampTransform[0][0]));	
+
+			EnableVertexAttributeArray(0);
+			EnableVertexAttributeArray(1);
+		}
+
+		sfn Stop()
+		{
+			DisableVertexAttributeArray(0);
+			DisableVertexAttributeArray(1);
 		}
 	}
 
@@ -420,9 +439,9 @@ namespace DGL
 	{
 		ID<ShaderProgram> ShaderID;
 
-		ID<CoordSpace> ModelScreenSpaceID, ModelSpaceID;
+		ID<CoordSpace> ModelSpaceID, InverseModelSpaceID, ViewportID, ProjectionID;
 
-		ID<Vec3> LightPositionID;
+		ID<Vec3> LightPositionID, ViewPositionID;
 
 		ID<Vec3> ObjectColorID, LightColorID;
 
@@ -430,32 +449,51 @@ namespace DGL
 		{
 			ShaderID = LoadShaders("PhongShader.vert", "PhongShader.frag");
 
-			ModelScreenSpaceID = GetUniformVariable(ShaderID, "ModelScreenSpace");
-			ModelSpaceID       = GetUniformVariable(ShaderID, "ModelSpace"      );
+			InverseModelSpaceID = GetUniformVariable(ShaderID, "InverseModelSpace");
+			ModelSpaceID        = GetUniformVariable(ShaderID, "ModelSpace"       );
+			ProjectionID        = GetUniformVariable(ShaderID, "Projection"       );
+			ViewportID          = GetUniformVariable(ShaderID, "Viewport"         );
 
-			ObjectColorID   = GetUniformVariable(ShaderID, "ObjectColor"    );
-			LightColorID    = GetUniformVariable(ShaderID, "LightColor"     );
-			LightPositionID = GetUniformVariable(ShaderID, "LightPositionID");
+			ObjectColorID   = GetUniformVariable(ShaderID, "ObjectColor"  );
+			LightColorID    = GetUniformVariable(ShaderID, "LightColor"   );
+			LightPositionID = GetUniformVariable(ShaderID, "LightPosition");
+			ViewPositionID  = GetUniformVariable(ShaderID, "ViewPosition" );
 		}
 
 		sfn SetupRender
 		(
-			Ref(CoordSpace) _screenSapceTransform, 
+			Ref(CoordSpace) _projection          ,
+			Ref(CoordSpace) _viewport            ,
 			Ref(CoordSpace) _objectTransform     , 
  			Ref(Vector3   ) _objectColor         , 
 			Ref(Vector3   ) _lightPosition       , 
-			Ref(Vector3   ) _lightColor
+			Ref(Vector3   ) _lightColor          ,
+			Ref(Vector3   ) _viewPosition
 		)
 		{
+			CoordSpace inverseTransform = Inverse(_objectTransform);
+
 			UseProgramShader(ShaderID);
 
-			SetUniformVariable_MVA(ModelScreenSpaceID, 1, EBool::False, Address(_screenSapceTransform[0][0]));
-			SetUniformVariable_MVA(ModelSpaceID      , 1, EBool::False, Address(_objectTransform     [0][0]));
+			SetUniformVariable_MVA(InverseModelSpaceID, 1, EBool::False, Address(inverseTransform[0][0]));
+			SetUniformVariable_MVA(ModelSpaceID       , 1, EBool::False, Address(_objectTransform[0][0]));
+			SetUniformVariable_MVA(ProjectionID       , 1, EBool::False, Address(_projection     [0][0]));
+			SetUniformVariable_MVA(ViewportID         , 1, EBool::False, Address(_viewport       [0][0]));
 
 			SetUniformVariable_Vector3(LightPositionID, 1, Address(_lightPosition[0]));
 
-			SetUniformVariable_Vector3(ObjectColorID, 1, Address(_objectColor[0]));
-			SetUniformVariable_Vector3(LightColorID , 1, Address(_lightColor [0]));
+			SetUniformVariable_Vector3(ObjectColorID , 1, Address(_objectColor [0]));
+			SetUniformVariable_Vector3(LightColorID  , 1, Address(_lightColor  [0]));
+			SetUniformVariable_Vector3(ViewPositionID, 1, Address(_viewPosition[0]));
+
+			EnableVertexAttributeArray(0);
+			EnableVertexAttributeArray(1);
+		}
+
+		sfn Stop()
+		{
+			DisableVertexAttributeArray(1);
+			DisableVertexAttributeArray(0);
 		}
 	}
 

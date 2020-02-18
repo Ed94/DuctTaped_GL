@@ -370,7 +370,7 @@ sfn RAW_RenderCube()
 LinearColor CoralColor(1.0f, 0.5f, 0.31f, 1.0f);
 LinearColor LightColor(1.0f, 1.0f, 1.0f , 1.0f);
 
-Vector3 LightPosition(1.2f, 1.0f, 2.0f);
+Vector3 LightPosition(1.2f, 2.0f, 3.0f);
 
 Vector3 LightScale = Vector3(0.2f);
 
@@ -397,6 +397,40 @@ sfn RAW_MakeLightVAO()
 	LightTransform = DGL::Scale    (LightTransform, LightScale   );
 }
 
+sfn RAW_LightRotate(gFloat _delta)
+{
+	//LightTransform = DGL::Rotate(LightTransform, 0.1f, Vector3(1, 0, 0));
+
+	static bool test = true;
+
+	LightTransform = CoordSpace(1.0f);
+
+	if (test)
+	{
+		LightPosition.x += 0.001f + _delta;
+
+		if (LightPosition.x > 4)
+		{
+			test = false;
+		}
+
+		LightTransform = DGL::Translate(LightTransform, LightPosition);
+		LightTransform = DGL::Scale    (LightTransform, LightScale   );
+	}
+	else
+	{
+		LightPosition.x -= 0.001f + _delta;
+
+		if (LightPosition.x < -4)
+		{
+			test = true;
+		}
+
+		LightTransform = DGL::Translate(LightTransform, LightPosition);
+		LightTransform = DGL::Scale    (LightTransform, LightScale   );
+	}
+}
+
 
 using DGL::GetBufferParameterIV;
 
@@ -409,6 +443,8 @@ sfn RAW_RenderLight(CoordSpace _projection, CoordSpace _viewport)
 	DGL::BindVertexArray(LightVAO);
 
 	RAW_RenderCube();
+
+	DGL::Basic_LampShader::Stop();
 }
 
 
@@ -448,7 +484,7 @@ sfn RAW_RenderLitCube(CoordSpace _projection, CoordSpace _viewport)
 
 	Vector3 lightColor = LightColor.Vector();
 
-	DGL::PhongShader::SetupRender(screenspaceTransform, LitCubeTransform, CubeColor, LightPosition, lightColor);
+	//DGL::PhongShader::SetupRender(screenspaceTransform, LitCubeTransform, CubeColor, LightPosition, lightColor);
 
 	DGL::BindVertexArray(LitCubeVAO);
 
@@ -459,7 +495,7 @@ sfn RAW_RenderLitCube(CoordSpace _projection, CoordSpace _viewport)
 
 namespace ProperCube
 {
-	Model model("cube.obj");
+	Model model("Cube.obj");
 
 	Vector3 position = Vector3(0.0f);
 
@@ -469,20 +505,33 @@ namespace ProperCube
 
 	sfn Rotate(gFloat _delta)
 	{
-		transform = DGL::Rotate(transform, 3.5f * _delta, Vector3(0, 1, 0));
+		//transform = DGL::Rotate(transform, 1.5f * _delta, Vector3(0, 1, 0));
 	}
 
-	sfn Render(Ref(CoordSpace) _projection, Ref(CoordSpace) _viewport)
+	sfn Render(Ref(CoordSpace) _projection, Ref(CoordSpace) _viewport, Ref(Vector3) _cameraPosition)
 	{
 		CoordSpace screenspaceTransform = _projection * _viewport * transform;
 
 		Vector3 lightColor = LightColor.Vector();
 
-		//DGL::PhongShader::SetupRender(screenspaceTransform, transform, color, LightPosition, lightColor);
+		DGL::PhongShader::SetupRender
+		(
+			_projection    ,
+			_viewport      ,
+			transform      , 
+			color          , 
+			LightPosition  , 
+			lightColor     ,
+			_cameraPosition
+		);
 
-		DGL::Basic_LightingShader::SetupRender(screenspaceTransform, color, lightColor);
+		//DGL::Basic_LightingShader::Use(screenspaceTransform, color, lightColor);
 
 		model.Render();
+
+		DGL::Basic_LightingShader::Stop();
+
+		DGL::PhongShader::Stop();
 	}
 
 	sfn Setup()
@@ -496,9 +545,3 @@ namespace ProperCube
 		//transform = DGL::Scale(transform, Vector3(0.01));
 	}
 }
-
-
-
-
-
-
