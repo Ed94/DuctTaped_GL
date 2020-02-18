@@ -356,7 +356,7 @@ sfn RAW_RenderCube()
 LinearColor CoralColor(1.0f, 0.5f, 0.31f, 1.0f);
 LinearColor LightColor(1.0f, 1.0f, 1.0f , 1.0f);
 
-Vector3 LightPosition(1.2f, 2.0f, 3.0f);
+Vector3 LightPosition(1.2f, 2.0f, 0.5f);
 
 Vector3 LightScale = Vector3(0.2f);
 
@@ -481,7 +481,7 @@ sfn RAW_RenderLitCube(CoordSpace _projection, CoordSpace _viewport)
 
 namespace ProperCube
 {
-	Model model("torus.obj");
+	Model model("cube.obj");
 
 	Vector3 position = Vector3(0.0f);
 

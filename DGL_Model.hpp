@@ -67,7 +67,9 @@ namespace DGL
 
 	struct Face
 	{
-		VecInt Vertexes, Normals;
+		VecInt Vertexes,
+			Normals;
+		    	//UVs[3];
 	};
 
 	using FaceList = std::vector<Face>;
@@ -95,7 +97,7 @@ namespace DGL
 
 		sfn GetFace() -> Face
 		{
-			Face generated;
+			Face generated;// = { {0,0,0}, {0,0,0}, {0,0,0} };
 
 			for (int index = 0; index < 3; index++)
 			{
@@ -135,8 +137,12 @@ namespace DGL
 
 		const string FilePath;
 
-		VertexList Verticies  ;
-		VertexList VertNormals;
+		VertexList Verticies        ;
+		VertexList VertNormals      ;
+
+		VertexList RAWVertex  ;
+		VertexList VertNormalsRAW;
+
 		UVList     TextureMap ;
 		FaceList   Faces      ;
 		VIndexList Indicies   ; 
@@ -222,7 +228,7 @@ namespace DGL
 
 							_faceStream >> normalIndex >> ws;
 
-							faceMade.AddNormalIndex(normalIndex - 1);
+							faceMade.AddNormalIndex(normalIndex -1);
 
 							Indicies.push_back(normalIndex - 1);
 						}
@@ -311,12 +317,13 @@ namespace DGL
 				Vector3 edge1 = Verticies[vertexIndex2] - Verticies[vertexIndex1],
 					    edge2 = Verticies[vertexIndex3] - Verticies[vertexIndex2],
 					    
-					normal = GetDirection(GetCrossNormal(edge1, edge2));
+					normal = GetDirection(GetCrossNormal(edge2, edge1));
 
 
-				normal[0] = RoundOff(normal[0], 7);
-				normal[1] = RoundOff(normal[1], 7);
-				normal[2] = RoundOff(normal[2], 7);
+				normal[0] = normal[0];  // RoundOff(normal[0], 7);
+				normal[1] = normal[1];  // RoundOff(normal[1], 7);
+				normal[2] = normal[1];  // RoundOff(normal[2], 7);
+
 
 				bool normalExists = false;
 
@@ -327,6 +334,7 @@ namespace DGL
 						normalExists = true;
 					}
 				}
+
 
 				if (!normalExists)
 				{
@@ -344,10 +352,46 @@ namespace DGL
 			GenerateBuffers      (Address(EBO), 1);
 
 
-			if (VertNormals.size() == 0)
+			/*if (VertNormals.size() == 0)
 			{
 				GenerateNormals();
+			}*/
+
+			/*for (int index = 0; index < Faces.size(); index++)
+			{
+				cout << "FaceID: " << index << endl << endl;
+
+				for (int vertIndex = 0; vertIndex < 3; vertIndex++)
+				{
+					cout << "Vert Index: " << Faces[index].Vertexes[vertIndex] << endl;
+					cout << "Face Index: " << Faces[index].Normals[vertIndex] << endl;
+
+					RAWVertex.push_back
+					(
+						Verticies[Faces[index].Vertexes[vertIndex]]
+					);
+
+					RAWVertex.push_back
+					(
+						VertNormals[Faces[index].Normals[vertIndex]]
+					);
+				}
 			}
+			
+
+			BindVertexArray(VAO);
+
+			BindBuffer(EBufferTarget::VertexAttributes, VBO);
+
+			BufferData(Address(RAWVertex[0]), RAWVertex.size() * sizeof(Vector3), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
+
+			FormatVertexAttributes<Vector3>(0, EDataType::Float, ZeroOffset(), 3, EBool::False);
+
+			EnableVertexAttributeArray(0);
+
+			FormatVertexAttributes<Vector3>(1, EDataType::Float, Offset(sizeof(Vector3)), 3, EBool::False);
+
+			EnableVertexAttributeArray(1);*/
 			
 			BindVertexArray(VAO);
 
@@ -358,6 +402,7 @@ namespace DGL
 			FormatVertexAttributes<Vector3>(0, EDataType::Float, ZeroOffset(), 3, EBool::False);
 
 			EnableVertexAttributeArray(0);
+
 
 			if (VertNormals.size() != 0)
 			{
@@ -382,11 +427,13 @@ namespace DGL
 		{
 			BindVertexArray(VAO);
 
-			BindBuffer(EBufferTarget::VertexIndices, EBO);
+			BindBuffer(EBufferTarget::VertexAttributes, VBO);
 
 			gInt Size; GetBufferParameterIV(EBufferTarget::VertexIndices, EBufferParam::Size, Address(Size));
 
 			Size /= sizeof(gInt);
+
+			//DrawArrays(EPrimitives::Triangles, 0, RAWVertex.size());
 
 			DrawElements(EPrimitives::Triangles, Size, EDataType::UnsignedInt, ZeroOffset());
 

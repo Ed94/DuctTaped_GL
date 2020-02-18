@@ -36,7 +36,7 @@ void main()
 	float specularStrength = 0.5;
 
 	vec3 viewDirection = normalize(ViewPosition - FragPosition);
-//	vec3 ViewDirection = normalize(-FragPosition);
+//	vec3 viewDirection = normalize(-FragPosition);
 
 	vec3 reflectionDirection = reflect(-lightDirection, direction);  
 
@@ -46,7 +46,7 @@ void main()
 
 	// Combining
 
-	vec3 result = (ambient + diffuse) * ObjectColor;
+	vec3 result = (ambient + diffuse + specular) * ObjectColor;
 
 	FragColor = vec4(result, 1.0);
 }

@@ -3,6 +3,9 @@
 layout (location = 0) in vec3 VertPosition;
 layout (location = 1) in vec3 VertNormal  ;
 
+varying vec3 vPosInterp;
+varying vec3 vNormalInterp;
+
 out vec3 FragPosition     ;
 out vec3 Normal           ;
 out vec3 LightViewPosition;
@@ -24,7 +27,7 @@ void main()
 
 	FragPosition = vec3(Viewport * ModelSpace * vec4(VertPosition, 1.0));
 
-    Normal = mat3(transpose(InverseModelSpace)) * VertNormal;
+    Normal = mat3(transpose(inverse(Viewport * ModelSpace))) * VertNormal;
 
 	LightViewPosition = vec3(Viewport * vec4(LightPosition, 1.0));
 
