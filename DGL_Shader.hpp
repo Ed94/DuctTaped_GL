@@ -488,10 +488,12 @@ namespace DGL
 
 			EnableVertexAttributeArray(0);
 			EnableVertexAttributeArray(1);
+			//EnableVertexAttributeArray(2);
 		}
 
 		sfn Stop()
 		{
+			//DisableVertexAttributeArray(2);
 			DisableVertexAttributeArray(1);
 			DisableVertexAttributeArray(0);
 		}

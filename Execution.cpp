@@ -386,7 +386,7 @@ namespace Execution
 
 		//RAW_RotateLitCube(PhysicsDelta);
 
-		RAW_LightRotate(PhysicsDelta);
+		RAW_UpdateLightTransform(PhysicsDelta);
 
 		ProperCube::Rotate(PhysicsDelta);
 

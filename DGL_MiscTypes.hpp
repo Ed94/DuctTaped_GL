@@ -3,6 +3,7 @@
 // OpenGL
 #include <glew.h                  >
 #include <glm/detail/type_vec3.hpp>
+#include <glm/detail/type_vec2.hpp>
 
 
 // Duck Tape
@@ -19,6 +20,9 @@ namespace DGL
 	{
 		template<typename Type>
 		using Vector3 = glm::tvec3<Type>;
+
+		template<typename Type>
+		using Vector2 = glm::tvec2<Type>;
 	}
 
 	using DataPtr = ptr<GLvoid>;
@@ -35,6 +39,7 @@ namespace DGL
 	class Shader       ;
 	class ShaderProgram;
 	class VertexArray  ;
+	class TextureBuffer;
 	class ElementBuffer;
 
 

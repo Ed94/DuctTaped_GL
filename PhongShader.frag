@@ -2,12 +2,10 @@
 
 out vec4 FragColor;
 
-
 in vec3 FragPosition     ;
 in vec3 Normal           ;
 in vec3 LightViewPosition;
-in vec3 LightRawPos;
-
+in vec3 LightRawPos      ;
 
 uniform vec3 ObjectColor;
 uniform vec3 LightColor  ;
@@ -25,7 +23,7 @@ void main()
 
 	// Diffuse
 
-	vec3 direction      = normalize(Normal                    );
+	vec3 direction      = normalize(Normal                          );
 	vec3 lightDirection = normalize(LightViewPosition - FragPosition);  
 
 	float diffuseStrength  = max(dot(direction, lightDirection), 0.0);
@@ -35,8 +33,8 @@ void main()
 
 	float specularStrength = 0.5;
 
-	vec3 viewDirection = normalize(ViewPosition - FragPosition);
-//	vec3 viewDirection = normalize(-FragPosition);
+//	vec3 viewDirection = normalize(ViewPosition - FragPosition);
+	vec3 viewDirection = normalize(-FragPosition);
 
 	vec3 reflectionDirection = reflect(-lightDirection, direction);  
 

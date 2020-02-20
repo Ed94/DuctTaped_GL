@@ -2,9 +2,7 @@
 
 layout (location = 0) in vec3 VertPosition;
 layout (location = 1) in vec3 VertNormal  ;
-
-varying vec3 vPosInterp;
-varying vec3 vNormalInterp;
+layout (location = 2) in vec3 VertTexture ;
 
 out vec3 FragPosition     ;
 out vec3 Normal           ;

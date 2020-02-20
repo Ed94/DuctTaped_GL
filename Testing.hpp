@@ -18,6 +18,11 @@ using DGL::LinearColor;
 using DGL::Vector3;
 using DGL::ZeroOffset;
 
+struct RAWBS
+{
+	float bullshit[6 * 6 * 2 *3];
+};
+
 
 float vertices[] = {
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -356,7 +361,7 @@ sfn RAW_RenderCube()
 LinearColor CoralColor(1.0f, 0.5f, 0.31f, 1.0f);
 LinearColor LightColor(1.0f, 1.0f, 1.0f , 1.0f);
 
-Vector3 LightPosition(1.2f, 2.0f, 0.5f);
+Vector3 LightPosition(1.2f, 1.0f, 1.75f);
 
 Vector3 LightScale = Vector3(0.2f);
 
@@ -383,10 +388,8 @@ sfn RAW_MakeLightVAO()
 	LightTransform = DGL::Scale    (LightTransform, LightScale   );
 }
 
-sfn RAW_LightRotate(gFloat _delta)
+sfn RAW_UpdateLightTransform(gFloat _delta)
 {
-	//LightTransform = DGL::Rotate(LightTransform, 0.1f, Vector3(1, 0, 0));
-
 	static bool test = true;
 
 	LightTransform = CoordSpace(1.0f);
@@ -478,10 +481,12 @@ sfn RAW_RenderLitCube(CoordSpace _projection, CoordSpace _viewport)
 }
 
 
+using DGL::NormalBuffer;
+
 
 namespace ProperCube
 {
-	Model model("cube.obj");
+	Model model("topology.obj");
 
 	Vector3 position = Vector3(0.0f);
 
@@ -489,9 +494,11 @@ namespace ProperCube
 
 	CoordSpace transform = Matrix4x4(1.0f);
 
+
+
 	sfn Rotate(gFloat _delta)
 	{
-		//transform = DGL::Rotate(transform, 1.5f * _delta, Vector3(0, 1, 0));
+		transform = DGL::Rotate(transform, 0.75f * _delta, Vector3(0, 1, 0));
 	}
 
 	sfn Render(Ref(CoordSpace) _projection, Ref(CoordSpace) _viewport, Ref(Vector3) _cameraPosition)
@@ -511,20 +518,16 @@ namespace ProperCube
 			_cameraPosition
 		);
 
-		//DGL::Basic_LightingShader::Use(screenspaceTransform, color, lightColor);
-
 		model.Render();
-
-		DGL::Basic_LightingShader::Stop();
 
 		DGL::PhongShader::Stop();
 	}
 
+	using DGL::Offset;
+
 	sfn Setup()
 	{
 		model.Load();
-
-		//model.GenVN();
 
 		model.Buffer();
 
