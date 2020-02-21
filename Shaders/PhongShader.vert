@@ -28,7 +28,7 @@ void main()
 
 	FragPosition = vec3(Viewport * ModelSpace * vec4(VertPosition, 1.0));
 
-    Normal = mat3(transpose(inverse(InverseModelSpace))) * VertNormal;
+    Normal = mat3(transpose(InverseModelSpace)) * VertNormal;
 
 	LightViewPosition = vec3(Viewport * vec4(LightPosition, 1.0));
 }

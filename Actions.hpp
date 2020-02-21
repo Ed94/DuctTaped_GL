@@ -2,13 +2,12 @@
 Title : Actions
 Author: Edward R. Gonzalez
 
-Description: This was a little experiment of mine to mess with action binding...
+Description: 
+This was a little experiment of mine to mess with action binding...
 
 Allows for non-member functions to be binded to an action, implements a functioning queue as well.
 
 TODO: Possibly add support for member functions. Have it so that deduction of delegate typef is not required to add to queue properly (right now it does, see input procedure for example);
-
-Note: Right now due to type dynamics all actions are allocated via a pool and reuse is attempted by not guaranteed...
 */
 
 
@@ -23,21 +22,22 @@ Note: Right now due to type dynamics all actions are allocated via a pool and re
 
 namespace Actions
 {
-	using IndexType = DataSize;
+	using IndexType = DataSize       ;
+	using TypeIndex = std::type_index;
 
 
 
 	struct IAction
 	{
-		virtual sfn DoAction() -> void = NULL;
+		virtual sfn DoAction  () -> void   = NULL;
 	};
 
 	template<typename FunctionType, typename... ActionParams>
 	struct AAction : IAction
 	{
+	public:
 		using ActionType = Delegate< FunctionType >;
 
-	public:
 		AAction(ro Ref(ActionType) _actionToAssign, ro Ref(ActionParams)... _params) :
 			action(_actionToAssign),
 			params(_params...     ),
@@ -49,11 +49,23 @@ namespace Actions
 			return done;
 		}
 
-		sfn IsSame(ro Ref(ActionParams)... _paramsForAction) -> bool
+		sfn IsSame(ro Ref(ActionType) _action, ro Ref(ActionParams)... _paramsForAction) -> bool
 		{
 			Tuple<ActionParams...> paramsToCheck(_paramsForAction...);
 
-			if (params == paramsToCheck)
+			if (params == paramsToCheck && SameAction(_action))
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		sfn SameAction(ro Ref(ActionType) _action)
+		{
+			if (action.target<FunctionType*>() == _action.target<FunctionType*>())
 			{
 				return true;
 			}
@@ -70,11 +82,11 @@ namespace Actions
 			done = false;
 		}
 
-	private:
-		sfn DoAction_Implementation(ro Ref(ActionParams)... _params) { action(_params...); }
+	protected:
+		virtual sfn DoAction_Implementation(ro Ref(ActionParams)... _params) -> void { action(_params...); }
 
 		template<IndexType... TuplePackIndex>                                                        // TuplePackSequence<TuplePackIndex...>
-		sfn ExpandTuple_CallDoActionImplementaiton(ro Ref(Tuple<ActionParams...>) _paramsToExpand, std::index_sequence   <TuplePackIndex...>)
+		sfn ExpandTuple_CallDoActionImplementaiton(ro Ref(Tuple<ActionParams...>) _paramsToExpand, std::index_sequence   <TuplePackIndex...>) -> void
 		{
 			                        // ExpandTuplePack<TuplePackIndex>
 			DoAction_Implementation(std::get<TuplePackIndex>(_paramsToExpand)...);
@@ -82,7 +94,7 @@ namespace Actions
 
 		Tuple<ActionParams...> params;
 
-		ActionType action;
+		ro Ref(ActionType) action;
 
 		bool done;
 
@@ -101,12 +113,87 @@ namespace Actions
 		};
 	};
 
+	// TODO: This doesn't work yet...
+	template<typename ObjectType, typename FunctionType, typename... ActionParams>
+	class AAction_ObjectBound : public AAction<FunctionType, ActionParams...>
+	{
+	public:
+		using ActionType = Delegate<FunctionType>;
+
+		AAction_ObjectBound(Ref(ObjectType) _objectRef, ro Ref(ActionType) _actionToAssign, ro Ref(ActionParams)... _params) :
+			AAction<FunctionType, ActionParams...>::action(_actionToAssign),
+			AAction<FunctionType, ActionParams...>::params(_params...     ),
+			object                                        (_objectRef     )
+		{}
+
+
+		sfn IsSame(ro Ref(ObjectType) _object, ro Ref(ActionType) _action, ro Ref(ActionParams)... _params) -> bool
+		{
+			if (SameObject(_object) && SameAction(_action))
+			{
+				Tuple<ActionParams...> paramsToCheck(_params...);
+
+				if (AAction<FunctionType, ActionParams...>::params == paramsToCheck)
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+
+		sfn SameObject(ro Ref(ObjectType) _object) -> bool
+		{
+			if (Address(object) == Address(_object))
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+
+	protected:
+		virtual sfn DoAction_Implementation(ro Ref(ActionParams)... _params) -> void override
+		{ 
+			(Address(object).*AAction<FunctionType, ActionParams...>::action)(_params...);
+		}
+
+		template<IndexType... TuplePackIndex>                                                        // TuplePackSequence<TuplePackIndex...>
+		sfn ExpandTuple_CallDoActionImplementaiton(ro Ref(Tuple<ActionParams...>) _paramsToExpand, std::index_sequence   <TuplePackIndex...>) -> void
+		{
+			// ExpandTuplePack<TuplePackIndex>
+			DoAction_Implementation(std::get<TuplePackIndex>(_paramsToExpand)...);
+		}
+
+
+		Ref(ObjectType) object;
+
+
+	public:   // IAction
+
+		virtual sfn DoAction() -> void override
+		{
+			ExpandTuple_CallDoActionImplementaiton
+			(
+				AAction<FunctionType, ActionParams...>::params,
+				// MakeTuplePackSequence  <ActionParams...>()
+				std::index_sequence_for<ActionParams...>()
+			);
+
+			AAction<FunctionType, ActionParams...>::params::done = true;
+		};
+	};
+
 	struct ActionPool_Dynamic
 	{
 		template<typename Type>
 		using AllocationsOf = std::forward_list<Type>;
-
-		using TypeIndex         = std::type_index                                    ;
+		
 		using Managed_AAction   = SPtr           < IAction                          >;
 		using Managed_AActions  = AllocationsOf  < Managed_AAction                  >;
 		using AActions_Registry = std::map       <TypeIndex       , Managed_AActions>;
@@ -141,13 +228,60 @@ namespace Actions
 
 				for (Element possibleAction = possibleEntry->second.begin(); possibleAction != possibleEntry->second.end(); possibleAction++)
 				{
-					ptr< ActionType> castedEntry = static_cast< ptr< ActionType>>(possibleAction->get());
+					ptr< ActionType> castedEntry = static_cast<ptr< ActionType>>(possibleAction->get());
 
-					if (castedEntry->IsSame(_paramsForAction...))
+					if (castedEntry->IsSame(_actionToQueue, _paramsForAction...))
 					{
 						return castedEntry;
 					}
-					else if (castedEntry->Used())
+					else if (castedEntry->Used() && castedEntry->SameAction(_actionToQueue))
+					{
+						castedEntry->ReInitalize(_paramsForAction...);
+
+						return castedEntry;
+					}
+				}
+
+				SPtr< IAction> newAction = MakeSPtr< AAction<FunctionType, ActionParams...>>(_actionToQueue, _paramsForAction...);
+				ptr < IAction> returnRef = newAction.get                                                                       ();
+
+				aActions_Available.at(AActionID).push_front(newAction);
+
+				return returnRef;
+			}
+
+			SPtr< IAction> newAction = MakeSPtr< AAction<FunctionType, ActionParams...>>(_actionToQueue, _paramsForAction...);
+			ptr < IAction> returnRef = newAction.get                                                                       ();
+
+			aActions_Available.insert(std::make_pair(AActionID, Make_Managed_Actions()));
+
+			aActions_Available.at(AActionID).push_front(newAction);
+
+			return returnRef;
+		}
+
+		template<typename ObjectType, typename FunctionType, typename... ActionParams>
+		sfn Request_AAction(ro Ref(ObjectType) _objectRef, ro Ref(Delegate< FunctionType>) _actionToQueue, ro Ref(ActionParams)... _paramsForAction) -> ptr<IAction>
+		{
+			using ActionType = AAction_ObjectBound<ObjectType, FunctionType, ActionParams...>;
+
+			TypeIndex AActionID = typeid(ActionType);
+
+			deduce possibleEntry = aActions_Available.find(AActionID);
+
+			if (Contains(possibleEntry))
+			{
+				using Element = decltype(possibleEntry->second.begin());
+
+				for (Element possibleAction = possibleEntry->second.begin(); possibleAction != possibleEntry->second.end(); possibleAction++)
+				{
+					ptr< ActionType> castedEntry = static_cast<ptr< ActionType>>(possibleAction->get());
+
+					if (castedEntry->IsSame(_actionToQueue, _paramsForAction...))
+					{
+						return castedEntry;
+					}
+					else if (castedEntry->Used() && castedEntry->SameAction(_actionToQueue))
 					{
 						castedEntry->ReInitalize(_paramsForAction...);
 
@@ -206,6 +340,38 @@ namespace Actions
 				for (Element element = actionQueue.begin(); element != actionQueue.end(); element++)
 				{
 					if ( (*element) == actionRequested )
+					{
+						found = true;
+					}
+				}
+
+				if (not found)
+				{
+					actionQueue.push_front(actionRequested);
+				}
+			}
+			else
+			{
+				actionQueue.push_front(actionRequested);
+			}
+		}
+
+		template<typename ObjectType, typename FunctionType, typename... ActionParams>
+		sfn AddToQueue(ro Ref(ObjectType) _objectRef, ro Ref(Delegate< FunctionType>) _actionToQueue, ro Ref(ActionParams)... _paramsForAction)
+		{
+			using GeneratedActionType = AAction_ObjectBound<ObjectType, FunctionType, ActionParams...>;
+
+			ptr< IAction > actionRequested = DefaultActionPool_Dynamic.Request_AAction(_objectRef, _actionToQueue, _paramsForAction...);
+
+			if (HasAction())
+			{
+				bool found = false;
+
+				using Element = decltype(actionQueue.begin());
+
+				for (Element element = actionQueue.begin(); element != actionQueue.end(); element++)
+				{
+					if ((*element) == actionRequested)
 					{
 						found = true;
 					}

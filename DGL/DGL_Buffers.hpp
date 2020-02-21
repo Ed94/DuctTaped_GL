@@ -1,3 +1,11 @@
+/*
+Title : Ducktaped GL: Buffers
+Author: Edward R. Gonzalez
+
+Description:
+Contains wrappers to buffer related functionality.
+*/
+
 #pragma once
 
 // GLEW

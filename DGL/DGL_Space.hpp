@@ -106,7 +106,7 @@ namespace DGL
 			    UpDirection   ( 0, 1,  0),
 			    FrontDirection( 0, 0,  1) ;
 
-		gInt ScreenWidth = 720, ScreenHeight = 540, ScreenCenterWidth = ScreenWidth / 2, ScreenCenterHeight = ScreenHeight / 2;
+		gInt ScreenWidth = 1280, ScreenHeight = 800, ScreenCenterWidth = ScreenWidth / 2, ScreenCenterHeight = ScreenHeight / 2;
 	}
 
 	struct Camera

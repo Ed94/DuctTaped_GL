@@ -1,7 +1,18 @@
+/*
+Title : Ducktaped GL: Enums
+Author: Edward R. Gonzalez
+
+Description:
+Wraps the currently used enumerated macros used for various GFLW/OpenGL functions into enum classes.
+*/
+
 #pragma once
 
 // GLEW
 #include <glew.h>
+
+// GLFW
+#include <glfw3.h>
 
 
 
@@ -119,10 +130,12 @@ namespace DGL
 		A         = GLFW_KEY_A         ,
 		D         = GLFW_KEY_D         ,
 		E         = GLFW_KEY_E         ,
+		H         = GLFW_KEY_H         ,
 		I         = GLFW_KEY_I         ,
 		J         = GLFW_KEY_J         ,
 		K         = GLFW_KEY_K         ,
 		L         = GLFW_KEY_L         ,
+		M         = GLFW_KEY_M         ,
 		Q         = GLFW_KEY_Q         ,
 		S         = GLFW_KEY_S         ,
 		W         = GLFW_KEY_W         ,

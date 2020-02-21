@@ -1,3 +1,11 @@
+/*
+Title : Ducktaped GL: Model
+Author: Edward R. Gonzalez
+
+Description:
+
+*/
+
 #pragma once
 
 // DGL
@@ -158,6 +166,7 @@ namespace DGL
 	public:
 
 		Model(ro Ref(string) _filePath) :
+			loaded         (false       ),
 			vertexArrayID  (0           ),    
 			vertexBufferID (0           ),
 			normalBuffferID(0           ),
@@ -385,12 +394,21 @@ namespace DGL
 
 				fileBuffer.close();
 
+				Buffer();
+
+				loaded = true;
+
 				return;
 			}
 			else
 			{
 				throw std::runtime_error("Could not open file to load model.");
 			}
+		}
+
+		sfn Ready() -> bool
+		{
+			return loaded;
 		}
 
 		sfn Render()
@@ -429,6 +447,8 @@ namespace DGL
 		private:
 
 			// Components
+
+			bool loaded;
 
 			ID<VertexArray  > vertexArrayID  ;
 			ID<VertexBuffer > vertexBufferID ;

@@ -159,7 +159,6 @@ namespace DGL
 	{
 		using std::vector;
 
-
 		string   vertexShaderCode        ;
 		string   fragmentShaderCode      ;
 
@@ -308,195 +307,7 @@ namespace DGL
 		return;
 	}
 
-
-
-	// Shader Class
-
-	//class Shader_PhongBasic
-	//{
-	//public:
-	//	Shader_PhongBasic() 
-	//	{
-	//		LoadShader();
-	//	};
-
-
-	//	sfn LoadShader()
-	//	{
-	//		shaderID = LoadShaders("PhongShader_Deprecated.vert", "PhongShader_Deprecated.frag");
-
-	//		inverseModelSpaceID = GetUniformVariable(shaderID, "InverseModelSpace");
-	//		modelSpaceID        = GetUniformVariable(shaderID, "ModelSpace"       );
-	//		projectionID        = GetUniformVariable(shaderID, "Projection"       );
-	//		viewportID          = GetUniformVariable(shaderID, "Viewport"         );
-
-	//		objectColorID   = GetUniformVariable(shaderID, "ObjectColor"  );
-	//		lightColorID    = GetUniformVariable(shaderID, "LightColor"   );
-	//		lightPositionID = GetUniformVariable(shaderID, "LightPosition");
-	//		viewPositionID  = GetUniformVariable(shaderID, "ViewPosition" );
-
-	//		return;
-	//	}
-
-	//	sfn Use
-	//	(
-	//		ro Ref(CoordSpace) _projection          ,
-	//		ro Ref(CoordSpace) _viewport            ,
-	//		ro Ref(CoordSpace) _objectTransform     , 
- //			ro Ref(Vector3   ) _objectColor         , 
-	//		ro Ref(Vector3   ) _lightPosition       , 
-	//		ro Ref(Vector3   ) _lightColor          ,
-	//		ro Ref(Vector3   ) _viewPosition
-	//	)
-	//	{
-	//		CoordSpace inverseTransform = Inverse(_viewport * _objectTransform);
-
-	//		UseProgramShader(shaderID);
-
-	//		SetUniformVariable_MVA(inverseModelSpaceID, 1, false, inverseTransform[0][0]);
-	//		SetUniformVariable_MVA(modelSpaceID       , 1, false, _objectTransform[0][0]);
-	//		SetUniformVariable_MVA(projectionID       , 1, false, _projection     [0][0]);
-	//		SetUniformVariable_MVA(viewportID         , 1, false, _viewport       [0][0]);
-
-	//		SetUniformVariable_Vector3(lightPositionID, 1, _lightPosition[0]);
-
-	//		SetUniformVariable_Vector3(objectColorID , 1, _objectColor [0]);
-	//		SetUniformVariable_Vector3(lightColorID  , 1, _lightColor  [0]);
-	//		SetUniformVariable_Vector3(viewPositionID, 1, _viewPosition[0]);
-
-	//		EnableVertexAttributeArray(0);
-	//		EnableVertexAttributeArray(1);
-	//		//EnableVertexAttributeArray(2);
-
-	//		return;
-	//	}
-
-	//	sfn Stop()
-	//	{
-	//		//DisableVertexAttributeArray(2);
-	//		DisableVertexAttributeArray(1);
-	//		DisableVertexAttributeArray(0);
-
-	//		return;
-	//	}
-
-
-		// Declarations
-
-	//private:
-
-	//	ID<ShaderProgram> shaderID;
-
-	//	ID<CoordSpace> modelSpaceID, inverseModelSpaceID, viewportID, projectionID;
-
-	//	ID<Vec3> lightPositionID, viewPositionID, objectColorID, lightColorID;
-
-	//	gInt vertexIndexID, normalIndexID;
-	//};
-
-
-
-
-
-	// Old
-
-	// Some Raw Source Defaults:
-
-	RawString<const char> RawVertextShaderSource =
-		"#version 330 core\n"
-
-		"layout (location = 0) in vec3 aPos;\n"
-
-		"void main()\n"
-		"{\n"
-		"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-		"}\0";
-
-	RawString<const char> RawFragmentShaderSource =
-		"#version 400\n"
-
-		"out vec4 frag_colour;"
-
-		"void main() {"
-
-		"  frag_colour = vec4(0.5, 0.0, 0.5, 1.0);"
-
-		"}";
-
-
-	// Default Shaders
-
-	ID<ShaderProgram> RawShader   ,
-		              SimpleShader ;
-
-
-
-	namespace SS_Transformed
-	{
-		ID<ShaderProgram> Shader;
-
-		ID<CoordSpace> ScreenSpaceVarID;
-
-		sfn UpdateShader(ro Ref(CoordSpace) _screenSpace)
-		{
-			SetUniformVariable_MVA(ScreenSpaceVarID, 1, false, _screenSpace[0][0]);
-
-			return;
-		}
-
-		sfn LoadShader()
-		{
-			Shader = LoadShaders("SimpleTransform.vert", "SingleColor.frag");
-
-			ScreenSpaceVarID = DGL::GetUniformVariable(Shader, "ScreenSpaceTransform");
-
-			return;
-		}
-	}
-
-	namespace Basic_LightingShader
-	{
-		ID<ShaderProgram> Shader;
-
-		ID<CoordSpace> ScreenSpaceVarID;
-
-		ID<Vec3> ObjectColorID, LightColorID;
-
-		sfn LoadShader()
-		{
-			Shader = LoadShaders("SimpleTransform.vert", "BasicLighting.frag");
-
-			ScreenSpaceVarID = GetUniformVariable(Shader, "ScreenSpaceTransform");
-
-			ObjectColorID = GetUniformVariable(Shader, "ObjectColor");
-			LightColorID  = GetUniformVariable(Shader, "LightColor" );
-		}
-
-		sfn Stop()
-		{
-			DisableVertexAttributeArray(0);
-			DisableVertexAttributeArray(1);
-
-			return;
-		}
-
-		sfn Use(Ref(CoordSpace) _cubeTransform, Ref(Vector3) _objectColor, Ref(Vector3) _lightColor)
-		{
-			UseProgramShader(Shader);
-
-			SetUniformVariable_MVA(ScreenSpaceVarID, 1, false, _cubeTransform[0][0]);
-
-			SetUniformVariable_Vector3(ObjectColorID, 1, _objectColor[0]);
-			SetUniformVariable_Vector3(LightColorID , 1, _lightColor [0]);
-
-			EnableVertexAttributeArray(0);
-			EnableVertexAttributeArray(1);
-
-			return;
-		}
-	}
-
-	namespace Basic_LampShader
+	namespace Basic_LightShader
 	{
 		ID<ShaderProgram> Shader;
 
@@ -504,7 +315,7 @@ namespace DGL
 
 		sfn LoadShader()
 		{
-			Shader = LoadShaders("SimpleTransform.vert", "BasicLamp.frag");
+			Shader = LoadShaders("./Shaders/BasicLight.vert", "./Shaders/BasicLight.frag");
 
 			ScreenSpaceVarID = GetUniformVariable(Shader, "ScreenSpaceTransform");
 
@@ -554,7 +365,7 @@ namespace DGL
 
 		sfn LoadShader()
 		{
-			ShaderID = LoadShaders("PhongShader.vert", "PhongShader.frag");
+			ShaderID = LoadShaders("./Shaders/PhongShader.vert", "./Shaders/PhongShader.frag");
 
 			InverseModelSpaceID = GetUniformVariable(ShaderID, "InverseModelSpace");
 			ModelSpaceID        = GetUniformVariable(ShaderID, "ModelSpace"       );
@@ -568,37 +379,6 @@ namespace DGL
 			AmbientStrengthID  = GetUniformVariable(ShaderID, "AmbientStrength" );
 			DiffuseStrengthID  = GetUniformVariable(ShaderID, "DiffuseStrength" );
 			SpecularStrengthID = GetUniformVariable(ShaderID, "SpecularStrength");
-
-			return;
-		}
-
-		sfn Use_Old
-		(
-			ro Ref(CoordSpace) _projection          ,
-			ro Ref(CoordSpace) _viewport            ,
-			ro Ref(CoordSpace) _objectTransform     , 
- 			ro Ref(Vector3   ) _objectColor         , 
-			ro Ref(Vector3   ) _lightPosition       , 
-			ro Ref(Vector3   ) _lightColor          ,
-			ro Ref(Vector3   ) _viewPosition
-		)
-		{
-			CoordSpace inverseTransform = Inverse(_viewport * _objectTransform);
-
-			UseProgramShader(ShaderID);
-
-			SetUniformVariable_MVA(InverseModelSpaceID, 1, false, inverseTransform[0][0]);
-			SetUniformVariable_MVA(ModelSpaceID       , 1, false, _objectTransform[0][0]);
-			SetUniformVariable_MVA(ProjectionID       , 1, false, _projection     [0][0]);
-			SetUniformVariable_MVA(ViewportID         , 1, false, _viewport       [0][0]);
-
-			SetUniformVariable_Vector3(LightPositionID, 1, _lightPosition[0]);
-
-			SetUniformVariable_Vector3(ObjectColorID , 1, _objectColor [0]);
-			SetUniformVariable_Vector3(LightColorID  , 1, _lightColor  [0]);
-
-			EnableVertexAttributeArray(0);
-			EnableVertexAttributeArray(1);
 
 			return;
 		}
@@ -646,37 +426,10 @@ namespace DGL
 		}
 	}
 
-	sfn LoadRawShader()
-	{
-		ID<Shader> VertexShader   = 0;
-		ID<Shader> FragmentShader = 0;
-
-		MakeShader(VertexShader  , EShaderType::Vertex  , 1, Address(RawVertextShaderSource ), NULL);
-		MakeShader(FragmentShader, EShaderType::Fragment, 1, Address(RawFragmentShaderSource), NULL);
-
-		MakeShaderProgram(RawShader, VertexShader, FragmentShader);
-
-		DeleteShader(VertexShader  );
-		DeleteShader(FragmentShader);
-
-		return;
-	}
-
-	sfn LoadSimpleShader()
-	{
-		SimpleShader = LoadShaders("SimpleVertexShader.vert", "SimpleFragmentShader.frag");
-
-		return;
-	}
-
 	sfn LoadDefaultShaders()
 	{
-		                      LoadRawShader   ();
-		                      LoadSimpleShader();
-		SS_Transformed      ::LoadShader      ();
-		Basic_LampShader    ::LoadShader      ();
-		Basic_LightingShader::LoadShader      ();
-		PhongShader         ::LoadShader      ();
+		Basic_LightShader::LoadShader();
+		PhongShader      ::LoadShader();
 
 		return;
 	}

@@ -1,3 +1,11 @@
+/*
+Title : Ducktaped GL: Entity
+Author: Edward R. Gonzalez
+
+Description:
+Contains implementation for useful entity classes that brings together much of the OpenGL functionality to be used as individual objects.
+*/
+
 #pragma once
 
 
@@ -12,13 +20,15 @@
 #include "Cpp_Alias.hpp"
 
 
+
 namespace DGL
 {
 	namespace Colors
 	{
-		LinearColor CoralColor(1.0f , 0.5f , 0.31f, 1.0f);
-		LinearColor GreyColor (0.60f, 0.60f, 0.60f, 1.0f);
-		LinearColor LightColor(1.0f , 1.0f , 1.0f , 1.0f);
+		LinearColor Coral    (1.0f , 0.5f , 0.31f, 1.0f);
+		LinearColor Grey     (0.60f, 0.60f, 0.60f, 1.0f);
+		LinearColor WarmSphia(0.54f, 0.52f, 0.5f, 1.0f);
+		LinearColor White    (1.0f , 1.0f , 1.0f , 1.0f);
 	}
 
 	
@@ -26,11 +36,11 @@ namespace DGL
 	{
 	public:
 		Light_Basic() :
-			color            (Colors::LightColor.Vector()),
-			position         (Vector3   (0.0f)           ),
-			scale            (Vector3   (0.2f)           ),
-			transform        (CoordSpace(1.0f)           ),
-			translationRadius(4.0f                       )
+			color            (Colors::White.Vector()),
+			position         (Vector3   (0.0f)      ),
+			scale            (Vector3   (0.2f)      ),
+			transform        (CoordSpace(1.0f)      ),
+			translationRadius(4.0f                  )
 
 		{}
 
@@ -67,22 +77,26 @@ namespace DGL
 			UnbindVertexArray();
 		}
 
-		sfn Update()
+		sfn Update(double _delta)
 		{
+			static gFloat valueLoop = 0.0f;
+
 			transform = CoordSpace(1.0f);
 
-			position.x = translationRadius * sin(GetTime());
-			position.z = translationRadius * cos(GetTime());
+			position.x = translationRadius * sin(valueLoop);
+			position.z = translationRadius * cos(valueLoop);
 
 			transform = Translate(transform, position);
 			transform = Scale    (transform, scale   );
+
+			valueLoop += 0.31879f * _delta;
 		}
 
 		sfn Render(ro Ref(CoordSpace) _projection, ro Ref(CoordSpace) _viewport)
 		{
 			deduce screenspaceTransform = _projection * _viewport * transform;
 
-			Basic_LampShader::Use(screenspaceTransform);
+			Basic_LightShader::Use(screenspaceTransform);
 
 			BindVertexArray(modelVAO);
 
@@ -92,7 +106,9 @@ namespace DGL
 
 			DrawElements(EPrimitives::Triangles, SizeRef, EDataType::UnsignedInt, ZeroOffset());
 
-			Basic_LampShader::Stop();
+			//UnbindVertexArray();
+
+			Basic_LightShader::Stop();
 		}
 
 	private:
@@ -183,17 +199,46 @@ namespace DGL
 	public:
 		Entity_Basic() : 
 			position (Vector3(0.0f)   ),
-			model    (""              ),
+			scale    (Vector3(1.0f)   ),
+			model    (NULL            ),
 			transform(CoordSpace(1.0f))
 		{};
 
 		Entity_Basic(Ref(Model) _model, Ref(Material_Phong) _material) :
 			position (Vector3(0.0f)   ),
-			model    (_model          ),
+			scale    (Vector3(1.0f)   ),
+			model    (Address(_model) ),
 			transform(CoordSpace(1.0f)),
 			material (_material       )
 			//type     (_type        )
 		{};
+
+		sfn SetModel(Ref(Model) _model)
+		{
+			model = Address(_model);
+		}
+
+		sfn SetScale(gFloat _scaleBy)
+		{
+			scale = Vector3(_scaleBy);
+
+			transform = CoordSpace(1.0f);
+
+			transform = DGL::Translate(transform, position);
+
+			transform = DGL::Scale(transform, scale);
+		}
+
+		sfn SetPosition(ro Ref(Vector3) _position)
+		{
+			position = _position;
+
+			transform = CoordSpace(1.0f);
+
+			transform = DGL::Translate(transform, position);
+
+			transform = DGL::Scale(transform, scale);
+		}
 
 		sfn Update()
 		{
@@ -204,7 +249,7 @@ namespace DGL
 		{
 			PhongShader::Use(_projection, _viewport, transform, _lightPosition,_lightColor, material);
 
-			model.Render();
+			Dref(model).Render();
 
 			PhongShader::Stop();
 
@@ -214,6 +259,7 @@ namespace DGL
 		sfn operator= (ro Ref(Entity_Basic) _entity)->Ref(Entity_Basic)
 		{
 			position  = _entity.position ;
+			scale = _entity.scale;
 			model     = _entity.model    ;
 			transform = _entity.transform;
 			material  = _entity.material ;
@@ -226,7 +272,8 @@ namespace DGL
 		//EEntityType type;
 
 		Vector3        position     ;
-		Model          model        ;
+		Vector3        scale        ;
+		ptr<Model>     model        ;
 		CoordSpace     transform    ;
 		Material_Phong material     ;
 	};

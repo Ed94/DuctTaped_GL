@@ -1,13 +1,21 @@
 /*
+Title : Execution
+Author: Edward R. Gonzalez
 
+Description:
+This brings together the functionality I made in DGL and the Actions libraries to produce an OpenGL Workspace.
 
+Currently the workspace is heavily hardcoded and has one light rotating around the specified object. The material for the object is set during prep as well.
 
+All exposed library references are inside the inline namespace right after declaring the namespace execution.
+
+After I have the global objects used, followed by the functionality implementations, and at the very end the main function running the default execution implementation.
 */
 
 
 
 // DGL
-#include "DGL.hpp"
+#include "DGL/DGL.hpp"
 
 // Utility
 #include "Actions.hpp"
@@ -86,25 +94,37 @@ namespace Execution
 		using Actions::ActionQueue;
 	}
 
+	enum class EModels
+	{
+		Bunny    ,
+		Cube     ,
+		Eight    ,
+		Gargoyle ,
+		Hand     ,
+		Sculpture,
+		Topology ,
+		Torus
+	};
+
 
 	// Globals
 
 	bool Exist = true;   // Determines if the the execution should exit cycler.
 
-	TimeValDec CycleStart                     ,    // Snapshot of cycle loop start time. 
-		       CycleEnd                       ,    // Snapshot of cycle loop end   time. 
-		       DeltaTime                      ,    // Delta between last cycle start and end. 
-		       InputInterval   = 1.0f / 480.0f,    // Interval per second to complete the input   process of the cycle.
-		       PhysicsInterval = 1.0f / 240.0f,    // Interval per second to complete the physics process of the cycle. 
+	TimeValDec CycleStart                    ,    // Snapshot of cycle loop start time. 
+		       CycleEnd                      ,    // Snapshot of cycle loop end   time. 
+		       DeltaTime                     ,    // Delta between last cycle start and end. 
+		       InputInterval   = 1.0f / 144.0f,    // Interval per second to complete the input   process of the cycle.
+		       PhysicsInterval = 1.0f / 144.0f,    // Interval per second to complete the physics process of the cycle. 
 		       RenderInterval  = 1.0f / 144.0f ;   // Interval per second to complete the render  process of the cycle.
 
 	ptr<Window> DefaultWindow;   // Default window to use for execution.
 
 	double CursorX, CursorY;   // Cursor axis position on the window.
 
-	bool CursorOff = true;
+	bool CursorOff = true, ShowLight = true;
 
-	gFloat CamMoveSpeed     =  8.0f,    // Rate at which the camera should move.
+	gFloat CamMoveSpeed     =  7.0f,    // Rate at which the camera should move.
 		   CamRotationSpeed = 27.0f ;   // Rate at which the camera should rotate.
 
 	TimeValDec InputDelta   = 0.0,    // Current delta since last input   process. 
@@ -113,7 +133,17 @@ namespace Execution
 
 	ActionQueue ActionsToComplete;   // Actions queue to run during the physics process of the cycle.
 
-	Model objectModel("torus.obj");   // Hardcoded to specified obj file for now.
+	EModels CurrentModel = EModels::Torus;
+
+	Model Bunny    ("./Models/bunny.obj"       );
+	Model Cube     ("./Models/blenderCube2.obj");
+	Model Eight    ("./Models/eight.obj"       );
+	Model Gargoyle ("./Models/gargoyle.obj"    );
+	Model Hand     ("./Models/hand.obj"        );
+	Model Horse    ("./Models/horse.obj"       );
+	Model Sculpture("./Models/sculpture.obj"   );
+	Model Topology ("./Models/topology.obj"    );
+	Model Torus    ("./Models/Torus.obj"       );
 
 	Material_Phong ObjectMaterial;
 
@@ -121,11 +151,183 @@ namespace Execution
 	Entity_Basic ObjectToView;   // Object that will be currently in the middle with the light source rotating.
 
 
+	string 
+		windowTitle     = "Assignment 1"    , 
+		deltaStr        = "Delta: "         , 
+		inputDeltaStr   = "Input Delta: "   , 
+		physicsDeltaStr = "Physics Delta: " , 
+		renderDeltaStr  = "RenderDeltaStr: " ;
+
+	stringstream WindowTitle;
+
+
 
 
 	// Functionality
 
+	sfn ChangeModel()
+	{
+		if (CurrentModel == EModels::Torus)
+		{
+			CurrentModel = EModels::Bunny;
+		}
+		else
+		{
+			CurrentModel = EModels(int(CurrentModel) + 1);
+		}
+
+		switch (CurrentModel)
+		{
+		case EModels::Bunny:
+		{
+			if (not Bunny.Ready())
+			{
+				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Bunny...");
+
+				Bunny.Load();
+			}
+
+			ObjectToView.SetModel(Bunny);
+
+			ObjectToView.SetScale(4.0f);
+
+			ObjectToView.SetPosition(Vector3(-0.05, -4.4f, 0));
+
+			return;
+		}
+		case EModels::Cube:
+		{
+			if (not Cube.Ready())
+			{
+				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Cube...");
+
+				Cube.Load();
+			}
+
+			ObjectToView.SetModel(Cube);
+
+			ObjectToView.SetScale(1.0f);
+
+			ObjectToView.SetPosition(Vector3(0, -1.0, 0));
+
+			return;
+		}
+		case EModels::Eight:
+		{
+			if (not Eight.Ready())
+			{
+				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Eight...");
+
+				Eight.Load();
+			}
+
+			ObjectToView.SetModel(Eight);
+
+			//ObjectToView.Scale(1.0f);
+
+			ObjectToView.SetPosition(Vector3(0, -1.0, 0));
+
+			return;
+		}
+		case EModels::Gargoyle:
+		{
+			if (not Gargoyle.Ready())
+			{
+				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Gargoyle...");
+
+				Gargoyle.Load();
+			}
+
+			ObjectToView.SetModel(Gargoyle);
+
+			ObjectToView.SetPosition(Vector3(-1, -5.4f, 0));
+
+			ObjectToView.SetScale(6.0f);
+
+			return;
+		}
+		case EModels::Hand:
+		{
+			if (not Hand.Ready())
+			{
+				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Hand...");
+
+				Hand.Load();
+			}
+
+			ObjectToView.SetModel(Hand);
+
+			ObjectToView.SetScale(0.03f);
+
+			ObjectToView.SetPosition(Vector3(0, -1.1f, 0));
+
+
+			return;
+		}
+		case EModels::Sculpture:
+		{
+			if (not Sculpture.Ready())
+			{
+				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Sculpture...");
+
+				Sculpture.Load();
+			}
+
+			ObjectToView.SetModel(Sculpture);
+
+			ObjectToView.SetScale(0.01f);
+
+			return;
+		}
+		case EModels::Topology:
+		{
+			if (not Topology.Ready())
+			{
+				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Topology...");
+
+				Topology.Load();
+			}
+
+			ObjectToView.SetModel(Topology);
+
+			ObjectToView.SetScale(0.2f);
+
+			return;
+		}
+		case EModels::Torus:
+		{
+			if (not Torus.Ready())
+			{
+				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Torus...");
+
+				Torus.Load();
+			}
+
+			ObjectToView.SetModel(Torus);
+
+			ObjectToView.SetScale(1.0f);
+
+			return;
+		}
+		}
+	}
+
+	deduce ChangeModelDelegate = Delegate<decltype(ChangeModel)>(ChangeModel);
+
 	
+	sfn ToggleLight()
+	{
+		if (ShowLight)
+		{
+			ShowLight = false;
+		}
+		else
+		{
+			ShowLight = true;
+		}
+	}
+	
+	deduce ToogleLightDelegate = Delegate<decltype(ToggleLight)>(ToggleLight);
 	
 	// Input Action common functions...
 
@@ -163,6 +365,18 @@ namespace Execution
 
 
 	// End of common input functions...
+
+	sfn UpdateWindowDeltaTitle()
+	{
+		WindowTitle.str("");
+
+		WindowTitle 
+			<< windowTitle                     << "  " 
+			<< deltaStr        << DeltaTime    << "  " 
+			<< inputDeltaStr   << InputDelta   << "  " 
+			<< physicsDeltaStr << PhysicsDelta << "  " 
+			<< renderDeltaStr  << RenderDelta         ;
+	}
 
 
 
@@ -204,15 +418,14 @@ namespace Execution
 
 		Light.Load();
 
-		objectModel.Load  ();
-		objectModel.Buffer();
+		Torus.Load();
 
-		ObjectMaterial.Color    = DGL::Colors::GreyColor.Vector();
-		ObjectMaterial.Ambience = 0.01f                          ;
-		ObjectMaterial.Diffuse  = 1.0f                           ;
-		ObjectMaterial.Specular = 0.4f                           ;
+		ObjectMaterial.Color    = DGL::Colors::WarmSphia.Vector();
+		ObjectMaterial.Ambience = 0.112f                         ;
+		ObjectMaterial.Diffuse  = 0.928f                         ;
+		ObjectMaterial.Specular = 0.21f                          ;
 
-		ObjectToView = Entity_Basic(objectModel, ObjectMaterial);
+		ObjectToView = Entity_Basic(Torus, ObjectMaterial);
 	}
 
 
@@ -264,7 +477,7 @@ namespace Execution
 			{
 				ClearBuffer(EFrameBuffer::Color, EFrameBuffer::Depth);
 
-				SetClearColor(LinearColor(0.12f, 0.12f, 0.12f, 1.0f));
+				SetClearColor(LinearColor(0.02f, 0.02f, 0.02f, 1.0f));
 
 				_renderProcedure();
 
@@ -290,7 +503,6 @@ namespace Execution
 		return;
 	}
 
-	
 	sfn InputProcedure(ptr<Window> _currentWindowContext)
 	{
 		if (KeyPressed(_currentWindowContext, EKeyCodes::F1))
@@ -314,6 +526,16 @@ namespace Execution
 
 				CursorOff = false;
 			}
+		}
+
+		if (KeyPressed(_currentWindowContext, EKeyCodes::H))
+		{
+			ActionsToComplete.AddToQueue(ToogleLightDelegate);
+		}
+
+		if (KeyPressed(_currentWindowContext, EKeyCodes::M))
+		{
+			ActionsToComplete.AddToQueue(ChangeModelDelegate);
 		}
 
 		if (KeyPressed(_currentWindowContext, EKeyCodes::UpArrow))
@@ -400,35 +622,13 @@ namespace Execution
 		}
 	}
 
-
-	std::string 
-		windowTitle     = "Assignment 1"    , 
-		deltaStr        = "Delta: "         , 
-		inputDeltaStr   = "Input Delta: "   , 
-		physicsDeltaStr = "Physics Delta: " , 
-		renderDeltaStr  = "RenderDeltaStr: " ;
-
-	std::stringstream somethingtoupdate;
-
-	sfn UpdateWindowDeltaTitle()
-	{
-		somethingtoupdate.str("");
-
-		somethingtoupdate 
-			<< windowTitle                     << "  " 
-			<< deltaStr        << DeltaTime    << "  " 
-			<< inputDeltaStr   << InputDelta   << "  " 
-			<< physicsDeltaStr << PhysicsDelta << "  " 
-			<< renderDeltaStr  << RenderDelta         ;
-	}
-
 	sfn PhysicsProcedure()
 	{
 		WorldCamera.UpdateCamera();
 
 		UpdateScreenspace();
 
-		Light.Update();
+		Light.Update(gFloat(PhysicsDelta));
 
 		ObjectToView.Update();
 
@@ -437,14 +637,16 @@ namespace Execution
 	
 	sfn RenderProcedure() -> void
 	{
-		glfwSetWindowTitle(DefaultWindow, somethingtoupdate.str().c_str());
+		glfwSetWindowTitle(DefaultWindow, WindowTitle.str().c_str());
 
-		Light.Render(WorldCamera.Perspective, WorldCamera.Viewport);
+		if (ShowLight)
+		{
+			Light.Render(WorldCamera.Perspective, WorldCamera.Viewport);
+		}
 
 		ObjectToView.Render(WorldCamera.Perspective, WorldCamera.Viewport, Light.GetPosition(), Light.GetColor());
 	}
 	
-
 
 	// Runtime Execution: Default Execution
 
