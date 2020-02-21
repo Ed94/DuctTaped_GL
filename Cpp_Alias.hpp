@@ -44,8 +44,11 @@ auto
 #define deduce \
 auto
 
-#define Ref(_type) \
-_type&
+#define ro \
+const
+
+#define Ref(...) \
+__VA_ARGS__&
 
 #define rRef(_type) \
 _type&&
@@ -68,17 +71,20 @@ using ptr = Type*;
 template<typename ReturnType, typename... ParamTypes>
 using FnPtr = ReturnType(*)(ParamTypes...);
 
+template<typename Type>
+using SPtr = std::shared_ptr<Type>;
+
+template<typename Type>
+using UPtr = std::unique_ptr<Type>;
+
+
+// Delegating
+
 template<typename FnType>
 using Delegate = std::function<FnType>;
 
 template<typename ReturnType, typename... ParamTypes>
 using Func = ReturnType(ParamTypes...);
-
-template<typename Type>
-using UPtr = std::unique_ptr<Type>;
-
-template<typename Type>
-using SPtr = std::shared_ptr<Type>;
 
 
 
@@ -90,9 +96,14 @@ using RawString = ptr<CharType>;
 
 using std::cout; 
 using std::endl;
-using DataSize = std::size_t;
 
-using Thread = std::thread;
+using std::ifstream    ;
+using std::ios         ;
+using std::string      ;
+using std::stringstream;
+
+using DataSize = std::size_t;
+using Thread   = std::thread;
 
 template<typename... ObjectTypes>
 using Tuple = std::tuple<ObjectTypes...>;
@@ -120,7 +131,7 @@ sfn Address(Ref(Type) _instance) -> ptr<Type>
 }
 
 template<typename Type>
-sfn Dref(ptr<Type> _type) -> Ref(Type)
+sfn Dref(ro ptr<Type> _type) -> Ref(Type)
 {
 	return *_type;
 }
@@ -141,14 +152,14 @@ sfn MakeSPtr(rRef(ParamTypes)... _params) -> SPtr<Type>
 
 // Exit
 
-sfn Exit(ExitCode _code)
+sfn Exit(ro ExitCode _code)
 {
 	exit(int(_code));
 }
 
 // Error Stuff
 
-sfn ErrorRuntime(const Ref(std::runtime_error) _error)
+sfn ErrorRuntime(ro Ref(std::runtime_error) _error)
 {
 	std::cout << "Runtime error occurred: " << _error.what() << std::endl;
 

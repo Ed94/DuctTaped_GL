@@ -1,43 +1,57 @@
-// Cpp STL
+/*
 
-// Project
+
+
+*/
+
+
+
+// DGL
 #include "DGL.hpp"
-#include "Actions.hpp"
-#include "Testing.hpp"
 
+// Utility
+#include "Actions.hpp"
+
+// Non-Standard C++
 #include "Cpp_Alias.hpp"
 
 
 
 namespace Execution
 {
-	inline namespace Alias
+	inline namespace LibraryReferences
 	{
 		// DGL
 
-		using DGL::Camera       ;
-		using DGL::ECursorMode  ; 
+		using DGL::EBool        ;
+		using DGL::ECursorMode  ;
 		using DGL::EDirection   ;
 		using DGL::EFrameBuffer ;
 		using DGL::EKeyCodes    ;
-		using DGL::EMouseMode   ; 
+		using DGL::EMouseMode   ;
 		using DGL::EPrimitives  ;
 		using DGL::ERotationAxis;
-		using DGL::gFloat       ;
-		using DGL::LinearColor  ;
-		using DGL::Matrix       ;
-		using DGL::Matrix4x4    ;
-		using DGL::TimeValDec   ;
-		using DGL::Vector3      ;
-		using DGL::Window       ;
 
-		using DGL::SimpleShader;
+		using DGL::Camera        ;
+		using DGL::Entity_Basic  ;
+		using DGL::gFloat        ;
+		using DGL::Light_Basic   ;
+		using DGL::LinearColor   ;
+		using DGL::Material_Phong;
+		using DGL::Matrix        ;
+		using DGL::Matrix4x4     ;
+		using DGL::Model         ;
+		using DGL::TimeValDec    ;
+		using DGL::Vector3       ;
+		using DGL::Window        ;
 
+		using DGL::BindVertexArray            ;
 		using DGL::CanUseRawMouse             ;
 		using DGL::ClearBuffer                ;
 		using DGL::CreateWindow               ;
-		using DGL::BindVertexArray            ;
+		using DGL::DestoryWindow              ;
 		using DGL::DisableVertexAttributeArray;
+		using DGL::EnableDepth                ;
 		using DGL::EnableVertexAttributeArray ;
 		using DGL::GetCursorPosition          ;
 		using DGL::GetTime                    ;
@@ -80,7 +94,7 @@ namespace Execution
 	TimeValDec CycleStart                     ,    // Snapshot of cycle loop start time. 
 		       CycleEnd                       ,    // Snapshot of cycle loop end   time. 
 		       DeltaTime                      ,    // Delta between last cycle start and end. 
-		       InputInterval   = 1.0f / 400.0f,    // Interval per second to complete the input   process of the cycle.
+		       InputInterval   = 1.0f / 480.0f,    // Interval per second to complete the input   process of the cycle.
 		       PhysicsInterval = 1.0f / 240.0f,    // Interval per second to complete the physics process of the cycle. 
 		       RenderInterval  = 1.0f / 144.0f ;   // Interval per second to complete the render  process of the cycle.
 
@@ -90,7 +104,7 @@ namespace Execution
 
 	bool CursorOff = true;
 
-	gFloat CamMoveSpeed     = 8.0f,    // Rate at which the camera should move.
+	gFloat CamMoveSpeed     =  8.0f,    // Rate at which the camera should move.
 		   CamRotationSpeed = 27.0f ;   // Rate at which the camera should rotate.
 
 	TimeValDec InputDelta   = 0.0,    // Current delta since last input   process. 
@@ -99,40 +113,75 @@ namespace Execution
 
 	ActionQueue ActionsToComplete;   // Actions queue to run during the physics process of the cycle.
 
-	
+	Model objectModel("torus.obj");   // Hardcoded to specified obj file for now.
+
+	Material_Phong ObjectMaterial;
+
+	Light_Basic  Light       ;   // Hardcoded light. Rotates around object.
+	Entity_Basic ObjectToView;   // Object that will be currently in the middle with the light source rotating.
+
+
 
 
 	// Functionality
 
-	// Temp fix for now... not sure how to make proper action handling that can reference member function delegates...
+	
+	
+	// Input Action common functions...
 
-	sfn RotateCamera(ERotationAxis _rotationAxis, gFloat _rotationAmount, gFloat _delta)
+	sfn RotateCamera(ERotationAxis _rotationAxis, gFloat _rotationAmount, double _delta)
 	{
-		WorldCamera.Rotate(_rotationAxis, _rotationAmount, _delta);
+		WorldCamera.Rotate(_rotationAxis, _rotationAmount, gFloat(_delta));
 	} 
 	
 	deduce RotateCamDelegate = Delegate<decltype(RotateCamera)>(RotateCamera);
 
-	sfn MoveCamera(EDirection _direction, gFloat _translationAmount, gFloat _delta)
+
+	sfn MoveCamera(EDirection _direction, gFloat _translationAmount, double _delta)
 	{
-		WorldCamera.Move(_direction, _translationAmount, _delta);
+		WorldCamera.Move(_direction, _translationAmount, gFloat(_delta));
 	} 
 	
 	deduce MoveCamDelegate = Delegate<decltype(MoveCamera)>(MoveCamera);
 
-	// End of temp stuff...
+
+	// This is here cause its super repetitive..
+	sfn ModifyCamSpeed(bool _isPositive, double _delta)
+	{
+		if (_isPositive)
+		{
+			CamMoveSpeed += CamMoveSpeed * gFloat(_delta);
+		}
+		else
+		{
+			CamMoveSpeed -= CamMoveSpeed * gFloat(_delta);
+		}
+	}
+
+	deduce ModifyCamSpeedDelegate = Delegate<decltype(ModifyCamSpeed)>(ModifyCamSpeed);
+	deduce SetPolyModeDelegate    = Delegate<decltype(SetPolygonMode)>(SetPolygonMode);
+
+
+	// End of common input functions...
+
 
 
 	// Currently Does everything required before entering the cycler.
 	sfn PrepWorkspace()
 	{
+		// Baseline
+
 		InitalizeGLFW();
 
-		DefaultWindow = CreateWindow(ScreenWidth, ScreenHeight, "Assignment 1: Lighting Test", WindowedMode(), NotShared());
+		DefaultWindow = CreateWindow(ScreenWidth, ScreenHeight, "Assignment 1: Loading Model...", WindowedMode(), NotShared());
 
 		SetCurrentContext(DefaultWindow);
 
 		InitalizeGLEW();   // Glew must initialize only after a context is set.
+
+		EnableDepth();
+
+		SetPolygonMode(DGL::EFace::Front_and_Back, DGL::ERenderMode::Fill);
 
 		// Cursor stuff
 
@@ -147,25 +196,23 @@ namespace Execution
 
 		// End of cursor stuff...
 
+		// Shaders
+
 		LoadDefaultShaders();
 
-		//PrepareRenderObjects();
+		// Entities
 
-		SetPolygonMode(DGL::EFace::Front_and_Back, DGL::ERenderMode::Fill);
+		Light.Load();
 
-		RAW_MakeCube();
+		objectModel.Load  ();
+		objectModel.Buffer();
 
-		RAW_MakeLightVAO();
+		ObjectMaterial.Color    = DGL::Colors::GreyColor.Vector();
+		ObjectMaterial.Ambience = 0.01f                          ;
+		ObjectMaterial.Diffuse  = 1.0f                           ;
+		ObjectMaterial.Specular = 0.4f                           ;
 
-		ProperCube::Setup();
-
-
-		// TODO: Clean THIS
-
-		// Enable depth test
-		glEnable(GL_DEPTH_TEST);
-		// Accept fragment if it closer to the camera than the former one
-		glDepthFunc(GL_LESS);
+		ObjectToView = Entity_Basic(objectModel, ObjectMaterial);
 	}
 
 
@@ -176,7 +223,7 @@ namespace Execution
 
 	Cycler is hardcoded to exit if escape key is pressed.
 	*/
-	sfn Cycler(Delegate< Func<void, ptr<Window>> > _inputProcedure, Delegate< Func<void>> _physicsProcedure, Delegate< Func<void>> _renderProcedure)
+	sfn Cycler(ro Ref(Delegate< Func<void, ptr<Window>> >) _inputProcedure, ro Ref(Delegate< Func<void>>) _physicsProcedure, ro Ref(Delegate< Func<void>>) _renderProcedure)
 	{
 		while (Exist)
 		{
@@ -199,8 +246,6 @@ namespace Execution
 				{
 					ResetCursor(DefaultWindow, ScreenCenterWidth, ScreenCenterHeight);
 				}
-
-				InputDelta = 0.0;
 			}
 
 			if (PhysicsDelta >= PhysicsInterval)
@@ -228,6 +273,11 @@ namespace Execution
 				RenderDelta = 0.0;
 			}
 
+			if (InputDelta >= InputInterval)
+			{
+				InputDelta = 0.0;
+			}
+
 			CycleEnd = GetTime();
 
 			DeltaTime = CycleEnd - CycleStart;
@@ -240,24 +290,10 @@ namespace Execution
 		return;
 	}
 
-	sfn ModifyCamSpeed(bool _isPositive, gFloat _delta)
-	{
-		if (_isPositive)
-		{
-			CamMoveSpeed += CamMoveSpeed * _delta;
-		}
-		else
-		{
-			CamMoveSpeed -= CamMoveSpeed * _delta;
-		}
-	}
-
-	deduce ModifyCamSpeedDelegate = Delegate<decltype(ModifyCamSpeed)>(ModifyCamSpeed);
-	deduce SetPolyModeDelegate    = Delegate<decltype(SetPolygonMode)>(SetPolygonMode);
-
+	
 	sfn InputProcedure(ptr<Window> _currentWindowContext)
 	{
-		if (KeysPressed(_currentWindowContext, EKeyCodes::LeftShift, EKeyCodes::F1))
+		if (KeyPressed(_currentWindowContext, EKeyCodes::F1))
 		{
 			ECursorMode cursorMode = ECursorMode(GetMouseInputMode(DefaultWindow, EMouseMode::Cursor));
 
@@ -304,12 +340,12 @@ namespace Execution
 		{
 			if (CursorX != 0)
 			{
-				ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Yaw, CursorX * CamRotationSpeed, PhysicsDelta);
+				ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Yaw, gFloat(CursorX) * CamRotationSpeed, PhysicsDelta);
 			}
 
 			if (CursorY != 0)
 			{
-				ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Pitch, CursorY * CamRotationSpeed, PhysicsDelta);
+				ActionsToComplete.AddToQueue(RotateCamDelegate, ERotationAxis::Pitch, gFloat(CursorY) * CamRotationSpeed, PhysicsDelta);
 			}
 		}
 		
@@ -365,15 +401,25 @@ namespace Execution
 	}
 
 
-	std::string windowTitle = "Assignment 1", deltaStr = "Delta: ", inputDeltaStr = "Input Delta: ", physicsDeltaStr = "Physics Delta: ", renderDeltaStr = "RenderDeltaStr: ";
+	std::string 
+		windowTitle     = "Assignment 1"    , 
+		deltaStr        = "Delta: "         , 
+		inputDeltaStr   = "Input Delta: "   , 
+		physicsDeltaStr = "Physics Delta: " , 
+		renderDeltaStr  = "RenderDeltaStr: " ;
 
 	std::stringstream somethingtoupdate;
 
-	sfn UpdateThisShit()
+	sfn UpdateWindowDeltaTitle()
 	{
 		somethingtoupdate.str("");
 
-		somethingtoupdate << windowTitle << "  " << deltaStr << DeltaTime << "  " << inputDeltaStr << InputDelta << "  " << physicsDeltaStr << PhysicsDelta << "  " << renderDeltaStr << RenderDelta;
+		somethingtoupdate 
+			<< windowTitle                     << "  " 
+			<< deltaStr        << DeltaTime    << "  " 
+			<< inputDeltaStr   << InputDelta   << "  " 
+			<< physicsDeltaStr << PhysicsDelta << "  " 
+			<< renderDeltaStr  << RenderDelta         ;
 	}
 
 	sfn PhysicsProcedure()
@@ -382,26 +428,20 @@ namespace Execution
 
 		UpdateScreenspace();
 
-		DGL::SS_Transformed::UpdateShader(Screenspace);
+		Light.Update();
 
-		//RAW_RotateLitCube(PhysicsDelta);
+		ObjectToView.Update();
 
-		RAW_UpdateLightTransform(PhysicsDelta);
-
-		ProperCube::Rotate(PhysicsDelta);
-
-		UpdateThisShit();
+		UpdateWindowDeltaTitle();
 	}
 	
-	
-
 	sfn RenderProcedure() -> void
 	{
 		glfwSetWindowTitle(DefaultWindow, somethingtoupdate.str().c_str());
 
-		RAW_RenderLight(WorldCamera.Perspective, WorldCamera.Viewport);
+		Light.Render(WorldCamera.Perspective, WorldCamera.Viewport);
 
-		ProperCube::Render(WorldCamera.Perspective, WorldCamera.Viewport, WorldCamera.Position);
+		ObjectToView.Render(WorldCamera.Perspective, WorldCamera.Viewport, Light.GetPosition(), Light.GetColor());
 	}
 	
 
@@ -414,6 +454,10 @@ namespace Execution
 
 		Cycler(InputProcedure, PhysicsProcedure, RenderProcedure);
 
+		// TODO: There should be more to properly close...
+
+		DestoryWindow(DefaultWindow);
+
 		TerminateGLFW();
 
 		return ExitCode::Success;
@@ -421,7 +465,7 @@ namespace Execution
 }
 
 
-
+// Currently only can do one execution route.
 int main(void)
 {
 	return int(Execution::Execute());

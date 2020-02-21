@@ -1,13 +1,16 @@
 #version 330 core
 
-layout (location = 0) in vec3 VertPosition;
-layout (location = 1) in vec3 VertNormal  ;
-layout (location = 2) in vec3 VertTexture ;
+#define VertexIndex  0
+#define NormalIndex  1
+#define TextureIndex 2
+
+layout (location = VertexIndex ) in vec3 VertPosition;
+layout (location = NormalIndex ) in vec3 VertNormal  ;
+layout (location = TextureIndex) in vec3 VertTexture ;
 
 out vec3 FragPosition     ;
 out vec3 Normal           ;
 out vec3 LightViewPosition;
-out vec3 LightRawPos;
 
 uniform mat4 InverseModelSpace;
 
@@ -25,9 +28,7 @@ void main()
 
 	FragPosition = vec3(Viewport * ModelSpace * vec4(VertPosition, 1.0));
 
-    Normal = mat3(transpose(inverse(Viewport * ModelSpace))) * VertNormal;
+    Normal = mat3(transpose(inverse(InverseModelSpace))) * VertNormal;
 
 	LightViewPosition = vec3(Viewport * vec4(LightPosition, 1.0));
-
-	LightRawPos = LightPosition;
 }

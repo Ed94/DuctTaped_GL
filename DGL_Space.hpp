@@ -6,19 +6,16 @@
 #include <glm/ext/matrix_transform.hpp >
 
 // DGL
-#include "DGL_FundamentalTypes.hpp"
-#include "DGL_MiscTypes.hpp"
+#include "DGL_Types.hpp"
 
-
-
+// Non-Standard C++
 #include "Cpp_Alias.hpp"
 
 
 
 namespace DGL
 {
-	using CoordSpace = Matrix4x4;
-	using Projection = Matrix4x4;
+	
 
 
 	// Function
@@ -34,7 +31,7 @@ namespace DGL
 	}
 
 	template<typename Type>
-	sfn CreateLookAtView(const Generic::Vector3<Type> _viewPosition, const Generic::Vector3<Type> _lookAtPosition, const Generic::Vector3<Type> _upDirection) -> Matrix4x4
+	sfn CreateLookAtView(ro Ref(Generic::Vector3<Type>) _viewPosition, ro Ref(Generic::Vector3<Type>) _lookAtPosition, ro Ref(Generic::Vector3<Type>) _upDirection) -> Matrix4x4
 	{
 		return glm::lookAt(_viewPosition, _lookAtPosition, _upDirection);
 	}
@@ -45,43 +42,43 @@ namespace DGL
 	}
 
 	template<typename FloatType>
-	sfn CreatePerspective(const FloatType _fieldOfView, const FloatType _aspectRatio, const FloatType _nearPlane, const FloatType _farPlane)
+	sfn CreatePerspective(FloatType _fieldOfView, FloatType _aspectRatio, FloatType _nearPlane, FloatType _farPlane)
 	{
 		return glm::perspective(_fieldOfView, _aspectRatio, _nearPlane, _farPlane);
 	}
 
-	sfn GetCrossNormal(Vector3 _subj, Vector3 _ref) -> Vector3
+	sfn GetCrossNormal(ro Ref(Vector3) _subj, ro Ref(Vector3) _ref) -> Vector3
 	{
 		return glm::cross(_subj, _ref);
 	}
 
-	sfn GetDirection(Vector3 _vectorSpecified)
+	sfn GetDirection(ro Ref(Vector3) _vectorSpecified)
 	{
 		return glm::normalize(_vectorSpecified);
 	}
 
-	sfn Inverse(const Matrix4x4 _matrix)
+	sfn Inverse(ro Ref(Matrix4x4) _matrix)
 	{
 		return glm::inverse(_matrix);
 	}
 
-	sfn Rotate(const Matrix4x4 _matrix, gFloat _rotationAngleAmount, Vector3 _axis) -> Matrix4x4
+	sfn Rotate(ro Ref(Matrix4x4) _matrix, gFloat _rotationAngleAmount, ro Ref(Vector3) _axis) -> Matrix4x4
 	{
 		return glm::rotate(_matrix, _rotationAngleAmount, _axis);
 	}
 
-	sfn Scale(const Matrix4x4 _matrix, Vector3 _scaleBy)
+	sfn Scale(ro Ref(Matrix4x4) _matrix, ro Ref(Vector3) _scaleBy)
 	{
 		return glm::scale(_matrix, _scaleBy);
 	}
 
 	template<typename Type>
-	sfn ToRadians(const Ref(Type) _degrees) -> Type
+	sfn ToRadians(Type _degrees) -> Type
 	{
 		return glm::radians(_degrees);
 	}
 
-	sfn Translate(const Matrix4x4 _matrix, Vector3 _translationAmount)
+	sfn Translate(ro Ref(Matrix4x4) _matrix, ro Ref(Vector3) _translationAmount)
 	{
 		return glm::translate(_matrix, _translationAmount);
 	}
@@ -109,7 +106,7 @@ namespace DGL
 			    UpDirection   ( 0, 1,  0),
 			    FrontDirection( 0, 0,  1) ;
 
-		gFloat ScreenWidth = 720.0f, ScreenHeight = 540.0f, ScreenCenterWidth = ScreenWidth / 2, ScreenCenterHeight = ScreenHeight / 2;
+		gInt ScreenWidth = 720, ScreenHeight = 540, ScreenCenterWidth = ScreenWidth / 2, ScreenCenterHeight = ScreenHeight / 2;
 	}
 
 	struct Camera
@@ -127,13 +124,13 @@ namespace DGL
 
 		Camera
 		(
-			gFloat         _aspectRatio   ,
-			gFloat         _fieldOfView   ,
-			ClippingPlanes _clippingPlanes,
-			Vector3        _position      ,
-			Vector3        _lookAtPosition,
-			Vector3        _upDirection   ,
-			Vector3        _frontDirection
+			       gFloat          _aspectRatio   ,
+			       gFloat          _fieldOfView   ,
+			ro Ref(ClippingPlanes) _clippingPlanes,
+			ro Ref(Vector3       ) _position      ,
+			ro Ref(Vector3       ) _lookAtPosition,
+			ro Ref(Vector3       ) _upDirection   ,
+			ro Ref(Vector3       ) _frontDirection
 		) :
 			AspectRatio   (_aspectRatio   ),
 			FieldOfView   (_fieldOfView   ),
@@ -143,11 +140,11 @@ namespace DGL
 			UpDirection   (_upDirection   ),
 			FrontDirection(_frontDirection)
 		{
-			Yaw = -90.0f; Pitch = 0; Roll = 0;
+			Yaw = -90.0f; Pitch = 0.0f; Roll = 0.0f;
 
 			UpdateCamera();
 
-			Orthographic = CreateOrthographic(0.0f, DefaultSpace::ScreenWidth, 0.0f, DefaultSpace::ScreenHeight, ClipSpace.Near, ClipSpace.Far);
+			Orthographic = CreateOrthographic(0.0f, gFloat(DefaultSpace::ScreenWidth), 0.0f, gFloat(DefaultSpace::ScreenHeight), ClipSpace.Near, ClipSpace.Far);
 
 			Perspective = CreatePerspective<gFloat>(ToRadians(FieldOfView), AspectRatio, ClipSpace.Near, ClipSpace.Far);
 		}
@@ -202,7 +199,7 @@ namespace DGL
 			return;
 		}
 
-		sfn Move(Vector3 _translationAmount, Ref(gFloat) _deltaTime)
+		sfn Move(ro Ref(Vector3) _translationAmount, gFloat _deltaTime)
 		{
 			Position += _translationAmount * _deltaTime;
 
@@ -266,12 +263,12 @@ namespace DGL
 	{
 		Camera WorldCamera
 		(
-			AspectRatio, 
-			FieldOfView, 
+			AspectRatio                                        , 
+			FieldOfView                                        , 
 			ClippingPlanes(NearClippingPlane, FarClippingPlane), 
-			CameraPosition, 
-			LookAtPosition, 
-			UpDirection, 
+			CameraPosition                                     , 
+			LookAtPosition                                     , 
+			UpDirection                                        , 
 			FrontDirection
 		);	
 

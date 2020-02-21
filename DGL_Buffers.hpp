@@ -4,9 +4,8 @@
 #include <glew.h>
 
 // DGL
-#include "DGL_FundamentalTypes.hpp"
-#include "DGL_MiscTypes.hpp"
 #include "DGL_Enum.hpp"
+#include "DGL_Types.hpp"
 
 // Non-Standard C++
 #include "Cpp_Alias.hpp"
@@ -15,14 +14,14 @@
 
 namespace DGL
 {
-	sfn BindBuffer(const EBufferTarget _targetType, const ID<VertexBuffer> _buffer)
+	sfn BindBuffer(EBufferTarget _targetType, ID<VertexBuffer> _buffer)
 	{
 		glBindBuffer(GLenum(_targetType), _buffer);
 
 		return;
 	}
 
-	sfn BindVertexArray(const gUInt _referenceToTrackArray)
+	sfn BindVertexArray(gUInt _referenceToTrackArray)
 	{
 		glBindVertexArray(_referenceToTrackArray);
 
@@ -30,27 +29,28 @@ namespace DGL
 	}
 
 	template<typename TypeOfData>
-	sfn BufferData(ptr<TypeOfData> _data, const EBufferTarget _targetType, const EBufferUsage _usageType)
+	sfn BufferData(ro Ref(TypeOfData) _data, EBufferTarget _targetType, EBufferUsage _usageType)
 	{
-		glBufferData(GLenum(_targetType), sizeof(TypeOfData), _data, GLenum(_usageType));
+		glBufferData(GLenum(_targetType), sizeof(TypeOfData), Address(_data), GLenum(_usageType));
 
 		return;
 	}
 
-	sfn BufferData(DataPtr _data,  gSize _sizeOfData, const EBufferTarget _targetType, const EBufferUsage _usageType)
+	template<typename Type>
+	sfn BufferData(ro Ref(Type) _data,  gSize _sizeOfData, EBufferTarget _targetType, EBufferUsage _usageType)
 	{
-		glBufferData(GLenum(_targetType), _sizeOfData, _data, GLenum(_usageType));
+		glBufferData(GLenum(_targetType), _sizeOfData, Address(_data), GLenum(_usageType));
 	}
 
 	template<typename... Type, typename = EFrameBuffer>
-	sfn ClearBuffer(const Type... _buffersToClear)
+	sfn ClearBuffer(Type... _buffersToClear)
 	{
-		glClear((gBitfield(_buffersToClear) | ...));
+		glClear( (gBitfield(_buffersToClear) | ...) );
 
 		return;
 	}
 
-	sfn DisableVertexAttributeArray(const gInt _vertexAttributeArrayIndex)
+	sfn DisableVertexAttributeArray(gInt _vertexAttributeArrayIndex)
 	{
 		glDisableVertexAttribArray(_vertexAttributeArrayIndex);
 	}
@@ -60,12 +60,12 @@ namespace DGL
 		glDrawArrays(GLenum(_primitive), _startingIndex, _numToRender);   // Starting from vertex 0; 3 vertices total -> 1 triangle.
 	}
 
-	sfn DrawElements(EPrimitives _primitive, gSize _numElements, EDataType _dataType, DataPtr _offfsetAddressFromFirstIndex)
+	sfn DrawElements(EPrimitives _primitive, gSize _numElements, EDataType _dataType, ro DataPtr _offfsetAddressFromFirstIndex)
 	{
 		glDrawElements(GLenum(_primitive), _numElements, GLenum(_dataType), _offfsetAddressFromFirstIndex);
 	}
 
-	sfn EnableVertexAttributeArray(const gInt _vertexAttributeArrayIndex)
+	sfn EnableVertexAttributeArray(gInt _vertexAttributeArrayIndex)
 	{
 		glEnableVertexAttribArray(_vertexAttributeArrayIndex);
 	}
@@ -73,11 +73,11 @@ namespace DGL
 	template<typename VertType>
 	sfn FormatVertexAttributes
 	(
-		gUInt     _attributeIndex              , 
-		EDataType _vertexComponenetType        ,
-		ptr<void> _firstVertexComponentLocation,
-		gInt      _numberOfVertexComponents    ,
-		EBool     _shouldNormalize
+		   gUInt     _attributeIndex              , 
+		   EDataType _vertexComponenetType        ,
+		ro ptr<void> _firstVertexComponentLocation,
+		   gInt      _numberOfVertexComponents    ,
+		   gBoolean   _shouldNormalize
 	)
 	{
 		glVertexAttribPointer
@@ -85,30 +85,47 @@ namespace DGL
 			_attributeIndex              ,
 			_numberOfVertexComponents    , 
 			GLenum(_vertexComponenetType),
-			GLenum(_shouldNormalize     ),
+			_shouldNormalize             ,
 			sizeof(VertType             ),
 			_firstVertexComponentLocation
 		);
 	}
 
-	sfn GenerateBuffers(ptr<gUInt> _bufferReferencer, uInt64 _numberOfBuffersToReserve)
+	sfn GenerateBuffers(Ref(gUInt) _bufferReferencer, gSize _numberOfBuffersToReserve)
 	{
-		glGenBuffers(_numberOfBuffersToReserve, _bufferReferencer);
+		glGenBuffers(_numberOfBuffersToReserve, Address(_bufferReferencer));
 
 		return;
 	}
 
-	sfn GenerateVertexBuffers(ptr<gUInt> __referenceRetainerToBuffer, uInt64 _numOfObjectsToReserveFor)
+	sfn GenerateVertexBuffers(Ref(gUInt) __referenceRetainerToBuffer, gSize _numOfObjectsToReserveFor)
 	{
-		glGenVertexArrays(_numOfObjectsToReserveFor, __referenceRetainerToBuffer);
+		glGenVertexArrays(_numOfObjectsToReserveFor, Address(__referenceRetainerToBuffer));
 
 		return;
 	}
 
-	sfn GetBufferParameterIV(EBufferTarget _target, EBufferParam _param, ptr<gInt> _data)
+	sfn GetBufferParameterIV(EBufferTarget _target, EBufferParam _param, Ref(gInt) _dataStore)
 	{
-		glGetBufferParameteriv(GLenum(_target), GLenum(_param), _data);
+		glGetBufferParameteriv(GLenum(_target), GLenum(_param), Address(_dataStore));
 
 		return;
+	}
+
+	// Used to get an offset from a specified location.
+	sfn Offset(uInt64 _offsetAmount)
+	{
+		return DataPtr(_offsetAmount);
+	}
+
+	sfn UnbindVertexArray()
+	{
+		BindVertexArray(0);
+	}
+
+	// Provides an zero offset pointer specifier.
+	constexpr sfn ZeroOffset() -> ptr<void>
+	{
+		return 0;
 	}
 }

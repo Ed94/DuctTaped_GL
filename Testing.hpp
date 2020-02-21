@@ -182,14 +182,14 @@ TriTexCoords textureCoords =
 
 sfn RAW_SetupBuffers()
 {
-	DGL::GenerateVertexBuffers(Address(VertexArrayObj ), 1);
-	DGL::GenerateBuffers      (Address(VertexBufferObj), 1);
-	DGL::GenerateBuffers      (Address(ElemBufferObj  ), 1);
+	DGL::GenerateVertexBuffers(VertexArrayObj , 1);
+	DGL::GenerateBuffers      (VertexBufferObj, 1);
+	DGL::GenerateBuffers      (ElemBufferObj  , 1);
 }
 
 sfn RAW_SetupTriangleBuffer()
 {
-	DGL::GenerateBuffers(Address(VertexBufferObj), 1);
+	DGL::GenerateBuffers(VertexBufferObj, 1);
 }
 
 sfn RAW_BindAndBufferDataToIDs()
@@ -200,11 +200,11 @@ sfn RAW_BindAndBufferDataToIDs()
 
 	//GL::BufferData<TriangleRaw>(Address(EquilateralTriangleVerticies), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
 
-	DGL::BufferData<RectangleCompressed>(Address(rectCompress), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
+	DGL::BufferData<RectangleCompressed>(rectCompress, EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
 	
 	DGL::BindBuffer(EBufferTarget::VertexIndices, ElemBufferObj);
 
-	DGL::BufferData<RectangleIndices>(Address(rectIndices), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
+	DGL::BufferData<RectangleIndices>(rectIndices, EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
 }
 
 DGL::gInt VertexAttributeIndex = 0;   // See shader source: (layout = 0).
@@ -229,7 +229,7 @@ sfn CreateWindow_BasicLoop()
 
 	DGL::SetCurrentContext(windowObj);
 
-	DGL::RunBasicWindowLoop(windowObj);
+	//DGL::RunBasicWindowLoop(windowObj);
 }
 
 sfn CreateWindow_TimedRender()
@@ -272,41 +272,7 @@ struct CubeElements
 	Edge3 front, right, back, left, bottom, top;
 };
 
-CubeVerts DefaultCube =
-{
-	// Front
-	{-1.0f, -1.0f,  1.0f},
-	{ 1.0f, -1.0f,  1.0f},
-	{ 1.0f,  1.0f,  1.0f},
-	{-1.0f,  1.0f,  1.0f},
 
-	// Back
-	{-1.0f, -1.0f, -1.0f},
-	{ 1.0f, -1.0f, -1.0f},
-	{ 1.0f,  1.0f, -1.0f},
-	{-1.0f,  1.0f, -1.0f}
-};
-
-CubeElements DefaultCubeElements =
-{
-	// Front
-	{ { 0, 1, 2 }, { 2, 3, 0 } },
-
-	// Right
-	{ { 1, 5, 6 }, { 6, 2, 1 } },
-
-	// Back
-	{ { 7, 6, 5 }, { 5, 4, 7 } },
-
-	// Left
-	{ { 4, 0, 3 }, { 3, 7, 4 } },
-
-	// Bottom
-	{ { 4, 5, 1 }, { 1, 0, 4 } },
-
-	// Top
-	{ { 3, 2, 6 }, { 6, 7, 3 } }
-};
 
 
 using DGL::CoordSpace;
@@ -324,24 +290,24 @@ ID<ElementBuffer> CubeModelElements;
 
 sfn RAW_MakeCube()
 {
-	DGL::GenerateVertexBuffers(Address(CubeVAO          ), 1);
-	DGL::GenerateBuffers      (Address(CubeModelBuffer  ), 1);
-	DGL::GenerateBuffers      (Address(CubeModelElements), 1);
+	DGL::GenerateVertexBuffers(CubeVAO          , 1);
+	DGL::GenerateBuffers      (CubeModelBuffer  , 1);
+	DGL::GenerateBuffers      (CubeModelElements, 1);
 
 	DGL::BindVertexArray(CubeVAO);
 
 
 	DGL::BindBuffer(EBufferTarget::VertexAttributes, CubeModelBuffer);
 
-	DGL::BufferData<CubeVerts>(Address(DefaultCube), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
+	DGL::BufferData<CubeVerts>(DefaultCube, EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
 
 
 	DGL::BindBuffer(EBufferTarget::VertexIndices, CubeModelElements);
 
-	DGL::BufferData<CubeElements>(Address(DefaultCubeElements), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
+	DGL::BufferData<CubeElements>(DefaultCubeElements, EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
 
 
-	DGL::FormatVertexAttributes<Vertex3>(0, EDataType::Float, ZeroOffset(), Vertex3::ValueCount(), EBool::False);
+	DGL::FormatVertexAttributes<Vertex3>(0, EDataType::Float, ZeroOffset(), Vertex3::ValueCount(), false);
 
 	DGL::EnableVertexAttributeArray(0);
 }
@@ -350,18 +316,19 @@ sfn RAW_RenderCube()
 {
 	DGL::BindBuffer(EBufferTarget::VertexIndices, CubeModelElements);
 
-	gInt Size; GetBufferParameterIV(EBufferTarget::VertexIndices, DGL::EBufferParam::Size, Address(Size));
+	gInt SizeRef; GetBufferParameterIV(EBufferTarget::VertexIndices, DGL::EBufferParam::Size, SizeRef);
 
-	Size /= sizeof(unsigned int);
+	SizeRef /= sizeof(unsigned int);
 
-	DGL::DrawElements(DGL::EPrimitives::Triangles, Size, EDataType::UnsignedInt, ZeroOffset());
+	DGL::DrawElements(DGL::EPrimitives::Triangles, SizeRef, EDataType::UnsignedInt, ZeroOffset());
 }
 
 
 LinearColor CoralColor(1.0f, 0.5f, 0.31f, 1.0f);
+LinearColor SomeColor(0.60f, 0.60f, 0.60f, 1.0f);
 LinearColor LightColor(1.0f, 1.0f, 1.0f , 1.0f);
 
-Vector3 LightPosition(1.2f, 1.0f, 1.75f);
+Vector3 LightPosition(0, 0, 0);
 
 Vector3 LightScale = Vector3(0.2f);
 
@@ -369,18 +336,20 @@ Vector3 result = LightColor.Vector() * CoralColor.Vector();
 
 CoordSpace LightTransform = Matrix4x4(1.0f);
 
+gFloat TranslationScale = 4.0f;
+
 ID<VertexArray> LightVAO;
 
 sfn RAW_MakeLightVAO()
 {
-	DGL::GenerateVertexBuffers(Address(LightVAO), 1);
+	DGL::GenerateVertexBuffers(LightVAO, 1);
 
 	DGL::BindVertexArray(LightVAO);
 
 	DGL::BindBuffer(EBufferTarget::VertexAttributes, CubeModelBuffer  );
 	DGL::BindBuffer(EBufferTarget::VertexIndices   , CubeModelElements);
 
-	DGL::FormatVertexAttributes<Vertex3>(0, EDataType::Float, ZeroOffset(), Vertex3::ValueCount(), EBool::False);
+	DGL::FormatVertexAttributes<Vertex3>(0, EDataType::Float, ZeroOffset(), Vertex3::ValueCount(), false);
 
 	DGL::EnableVertexAttributeArray(0);
 
@@ -390,7 +359,7 @@ sfn RAW_MakeLightVAO()
 
 sfn RAW_UpdateLightTransform(gFloat _delta)
 {
-	static bool test = true;
+	/*static bool test = true;
 
 	LightTransform = CoordSpace(1.0f);
 
@@ -417,7 +386,17 @@ sfn RAW_UpdateLightTransform(gFloat _delta)
 
 		LightTransform = DGL::Translate(LightTransform, LightPosition);
 		LightTransform = DGL::Scale    (LightTransform, LightScale   );
-	}
+	}*/
+
+
+	LightTransform = CoordSpace(1.0f);
+
+	LightPosition.x = TranslationScale * sin(DGL::GetTime());
+
+	LightPosition.z = TranslationScale * cos(DGL::GetTime());
+
+	LightTransform = DGL::Translate(LightTransform, LightPosition);
+	LightTransform = DGL::Scale    (LightTransform, LightScale   );
 }
 
 
@@ -427,7 +406,7 @@ sfn RAW_RenderLight(CoordSpace _projection, CoordSpace _viewport)
 {
 	deduce screenspaceTransform = _projection * _viewport * LightTransform;
 
-	DGL::Basic_LampShader::SetupLampRender(screenspaceTransform);
+	DGL::Basic_LampShader::Use(screenspaceTransform);
 
 	DGL::BindVertexArray(LightVAO);
 
@@ -450,21 +429,21 @@ ID<VertexArray> LitCubeVAO;
 
 sfn RAW_MakeLitCube()
 {
-	DGL::GenerateVertexBuffers(Address(LitCubeVAO), 1);
+	DGL::GenerateVertexBuffers(LitCubeVAO, 1);
 
 	DGL::BindVertexArray(LitCubeVAO);
 
 	DGL::BindBuffer(EBufferTarget::VertexAttributes, CubeModelBuffer  );
 	DGL::BindBuffer(EBufferTarget::VertexIndices   , CubeModelElements);
 
-	DGL::FormatVertexAttributes<Vertex3>(0, EDataType::Float, ZeroOffset(), Vertex3::ValueCount(), EBool::False);
+	DGL::FormatVertexAttributes<Vertex3>(0, EDataType::Float, ZeroOffset(), Vertex3::ValueCount(), false);
 
 	DGL::EnableVertexAttributeArray(0);
 }
 
 sfn RAW_RotateLitCube(gFloat _delta)
 {
-	LitCubeTransform = DGL::Rotate(LitCubeTransform, RotationRate * _delta, Vector3(0.0f, 1.0f, 0.0f));
+	//LitCubeTransform = DGL::Rotate(LitCubeTransform, RotationRate * _delta, Vector3(0.0f, 1.0f, 0.0f));
 }
 
 sfn RAW_RenderLitCube(CoordSpace _projection, CoordSpace _viewport)
@@ -472,8 +451,6 @@ sfn RAW_RenderLitCube(CoordSpace _projection, CoordSpace _viewport)
 	CoordSpace screenspaceTransform = _projection * _viewport * LitCubeTransform;
 
 	Vector3 lightColor = LightColor.Vector();
-
-	//DGL::PhongShader::SetupRender(screenspaceTransform, LitCubeTransform, CubeColor, LightPosition, lightColor);
 
 	DGL::BindVertexArray(LitCubeVAO);
 
@@ -486,11 +463,11 @@ using DGL::NormalBuffer;
 
 namespace ProperCube
 {
-	Model model("topology.obj");
+	Model model("blenderCube2.obj");
 
 	Vector3 position = Vector3(0.0f);
 
-	Vector3 color = CoralColor.Vector();
+	Vector3 color = SomeColor.Vector();
 
 	CoordSpace transform = Matrix4x4(1.0f);
 
@@ -498,7 +475,7 @@ namespace ProperCube
 
 	sfn Rotate(gFloat _delta)
 	{
-		transform = DGL::Rotate(transform, 0.75f * _delta, Vector3(0, 1, 0));
+		//transform = DGL::Rotate(transform, 0.75f * _delta, Vector3(0, 1, 0));
 	}
 
 	sfn Render(Ref(CoordSpace) _projection, Ref(CoordSpace) _viewport, Ref(Vector3) _cameraPosition)
@@ -507,7 +484,7 @@ namespace ProperCube
 
 		Vector3 lightColor = LightColor.Vector();
 
-		DGL::PhongShader::Use
+		DGL::PhongShader::Use_Old
 		(
 			_projection    ,
 			_viewport      ,

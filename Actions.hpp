@@ -38,7 +38,7 @@ namespace Actions
 		using ActionType = Delegate< FunctionType >;
 
 	public:
-		AAction(ActionType _actionToAssign, ActionParams... _params) :
+		AAction(ro Ref(ActionType) _actionToAssign, ro Ref(ActionParams)... _params) :
 			action(_actionToAssign),
 			params(_params...     ),
 			done  (false          )
@@ -49,7 +49,7 @@ namespace Actions
 			return done;
 		}
 
-		sfn IsSame(ActionParams... _paramsForAction) -> bool
+		sfn IsSame(ro Ref(ActionParams)... _paramsForAction) -> bool
 		{
 			Tuple<ActionParams...> paramsToCheck(_paramsForAction...);
 
@@ -63,7 +63,7 @@ namespace Actions
 			}
 		}
 
-		sfn ReInitalize(ActionParams... _params)
+		sfn ReInitalize(ro Ref(ActionParams)... _params)
 		{
 			params = Tuple<ActionParams...> (_params...);
 
@@ -71,10 +71,10 @@ namespace Actions
 		}
 
 	private:
-		sfn DoAction_Implementation(ActionParams... _params) { action(_params...); }
+		sfn DoAction_Implementation(ro Ref(ActionParams)... _params) { action(_params...); }
 
-		template<IndexType... TuplePackIndex>                                                            // TuplePackSequence<TuplePackIndex...>
-		sfn ExpandTuple_CallDoActionImplementaiton(const Ref(Tuple<ActionParams...>) _paramsToExpand, std::index_sequence   <TuplePackIndex...>)
+		template<IndexType... TuplePackIndex>                                                        // TuplePackSequence<TuplePackIndex...>
+		sfn ExpandTuple_CallDoActionImplementaiton(ro Ref(Tuple<ActionParams...>) _paramsToExpand, std::index_sequence   <TuplePackIndex...>)
 		{
 			                        // ExpandTuplePack<TuplePackIndex>
 			DoAction_Implementation(std::get<TuplePackIndex>(_paramsToExpand)...);
@@ -112,11 +112,6 @@ namespace Actions
 		using AActions_Registry = std::map       <TypeIndex       , Managed_AActions>;
 
 	public:
-		template<typename Entry>
-		sfn Available(Ref(Entry) _entry) -> bool
-		{
-			return _entry != aActions_Available.end() ? true : false;
-		}
 
 		template<typename Entry>
 		sfn Contains(Ref(Entry) _entry) -> bool
@@ -132,7 +127,7 @@ namespace Actions
 		}
 
 		template<typename FunctionType, typename... ActionParams>
-		sfn Request_AAction(Delegate< FunctionType> _actionToQueue, ActionParams... _paramsForAction) -> ptr<IAction>
+		sfn Request_AAction(ro Ref(Delegate< FunctionType>) _actionToQueue, ro Ref(ActionParams)... _paramsForAction) -> ptr<IAction>
 		{
 			using ActionType = AAction < FunctionType, ActionParams...>;
 
@@ -196,7 +191,7 @@ namespace Actions
 		
 	public:
 		template<typename FunctionType, typename... ActionParams>
-		sfn AddToQueue(Delegate< FunctionType> _actionToQueue, ActionParams... _paramsForAction)
+		sfn AddToQueue(ro Ref(Delegate< FunctionType>) _actionToQueue, ro Ref(ActionParams)... _paramsForAction)
 		{
 			using GeneratedActionType = AAction<FunctionType, ActionParams...>;
 

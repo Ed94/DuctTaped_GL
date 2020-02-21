@@ -3,55 +3,35 @@
 // DGL
 #include "DGL_Buffers.hpp"
 #include "DGL_Space.hpp"
+#include "DGL_Types.hpp"
 
-// C++
+// Non-Standard C++
 #include "Cpp_Alias.hpp"
 
 
 
 namespace DGL
 {
-	using std::string;
-
-	using UVList     = std    ::vector < Vector2>;
-	using Vec3Int    = Generic::Vector3< gUInt  >;
-	using Vec2Int    = Generic::Vector2< gUInt  >;
-	using VertexList = std    ::vector < Vector3>;
-	using VIndexList = std    ::vector < gInt   >;
-
-
-	
-	sfn Offset(gInt _offsetAmount)
-	{
-		return ptr<void>(_offsetAmount);
-	}
-
-	constexpr sfn ZeroOffset() -> ptr<void>
-	{
-		return 0;
-	}
-
-
-	
 	struct VertexGenerator
 	{
 		using ComponentList = std::vector< gFloat>;
 
+	public:
 
-
-		ComponentList comp;
-
-
-
-		// TODO: De-hard-code this generator to do any vector size.
-		sfn GetVector() -> Vector3
+		sfn AddComponent(gFloat _float)
 		{
-			return Vector3(comp.at(0), comp.at(1), comp.at(2));
+			comp.push_back(_float);
 		}
 
+		// TODO: De-hard-code this generator to do any vector size.
 		sfn GetVector2() -> Vector2
 		{
 			return Vector2(comp.at(0), comp.at(1));
+		}
+
+		sfn GetVector3() -> Vector3
+		{
+			return Vector3(comp.at(0), comp.at(1), comp.at(2));
 		}
 
 		void Normalize()
@@ -75,6 +55,10 @@ namespace DGL
 				*element /= magnitude;
 			}
 		}
+
+
+	private:
+		ComponentList comp;
 	};
 
 
@@ -141,46 +125,122 @@ namespace DGL
 	};
 
 
-
-	struct Model
+	// TODO: Add support for textures...
+	class Model
 	{
-		ID<VertexArray  > VAO;
-		ID<VertexBuffer > VBO;
-		ID<NormalBuffer > NBO;
-		ID<TextureBuffer> TBO;
-		ID<ElementBuffer> EBO;
+	private:
+		// Not the most efficient method to do normals, but works.
+		sfn generateNormals() -> void
+		{
+			normals.resize(verticies.size(), Vector3(0.0f));
 
-		const string FilePath;
+			for (int faceIndex = 0; faceIndex < faces.size(); faceIndex++)
+			{
+				int vertexIndex1 = faces[faceIndex].Vertexes[0],
+					vertexIndex2 = faces[faceIndex].Vertexes[1],
+					vertexIndex3 = faces[faceIndex].Vertexes[2];
 
-		VertexList Verticies  ;
-		VertexList VertNormals;
+				Vector3 edge1 = verticies[vertexIndex2] - verticies[vertexIndex1],
+					    edge2 = verticies[vertexIndex3] - verticies[vertexIndex1],
 
-		VertexList RAWVertex     ;
-		VertexList VertNormalsRAW;
+					normal = GetDirection(GetCrossNormal(edge1, edge2));
 
-		UVList     TextureMap ;
-		FaceList   Faces      ;
-		VIndexList Indicies   ; 
+				faces[faceIndex].Normals[0] = vertexIndex1;
+				faces[faceIndex].Normals[1] = vertexIndex2;
+				faces[faceIndex].Normals[2] = vertexIndex3;
 
+				normals[vertexIndex1] = normal;
+				normals[vertexIndex2] = normal;
+				normals[vertexIndex3] = normal;
+			}
+		}
 
+	public:
 
-		Model(const Ref(string) _filePath) :
-			VAO(-1),
-			VBO(-1),
-			NBO(-1),
-			EBO(-1),
-			FilePath   (_filePath   ),
-			Verticies  (VertexList()),
-			VertNormals(VertexList()),
-			TextureMap (UVList    ()),
-			Faces      (FaceList  ())
+		Model(ro Ref(string) _filePath) :
+			vertexArrayID  (0           ),    
+			vertexBufferID (0           ),
+			normalBuffferID(0           ),
+			textureBufferID(0           ),
+			elementBufferID(0           ),
+			filePath       (_filePath   ),
+			verticies      (VertexList()),
+			normals        (VertexList()),
+			textureUVs     (UVList    ()),
+			faces          (FaceList  ())
 		{}
 
-		// TODO: Add support for textures...
+
+		// Hardcoded to only do the verticies and normals for now...
+		sfn Buffer()
+		{
+			GenerateVertexBuffers(vertexArrayID  , 1);
+			GenerateBuffers      (vertexBufferID , 1);
+			GenerateBuffers      (normalBuffferID, 1);
+			GenerateBuffers      (elementBufferID, 1);
+
+
+			if (normals.size() == 0)
+			{
+				generateNormals();
+			}
+
+
+			BindVertexArray(vertexArrayID);
+
+
+			// Vertex Position Buffering
+
+			BindBuffer(EBufferTarget::VertexAttributes, vertexBufferID);
+
+			BufferData(verticies[0], gSize(verticies.size() * sizeof(Vector3)), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
+
+			FormatVertexAttributes<Vector3>(0, EDataType::Float, ZeroOffset(), 3, false);
+
+			EnableVertexAttributeArray(0);
+
+
+			// Normal Buffering
+
+			if (normals.size() != 0)
+			{
+				BindBuffer(EBufferTarget::VertexAttributes, normalBuffferID);
+
+				BufferData(normals[0], gSize(normals.size() * sizeof(Vector3)), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
+
+				FormatVertexAttributes<Vector3>(1, EDataType::Float, ZeroOffset(), 3, false);
+
+				EnableVertexAttributeArray(1);
+			}
+
+
+			// Texture buffering 
+		    // TODO: Fix this.
+
+			if (textureUVs.size() != 0)
+			{
+				//glBindTexture(TBO, GL_TEXTURE_2D);
+
+				//BufferData(Address(TextureMap[0]), TextureMap.size() * sizeof(Vector2), EBufferTarget::TextureData, EBufferUsage::StaticDraw);
+
+				//FormatVertexAttributes<Vector2>(2, EDataType::Float, ZeroOffset(), 2, EBool::False);
+
+				//EnableVertexAttributeArray(2);
+			}
+
+
+
+			BindBuffer(EBufferTarget::VertexIndices, elementBufferID);
+
+			BufferData(faces[0], gSize(faces.size() * sizeof(Face)), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
+
+
+
+			UnbindVertexArray();   // Unbind vertex array.
+		}
+
 		sfn Load()
 		{
-			using std::cout        ;
-			using std::endl        ;
 			using std::get         ;
 			using std::getline     ;
 			using std::ifstream    ;
@@ -190,7 +250,7 @@ namespace DGL
 
 
 
-			ifstream fileBuffer; fileBuffer.open(FilePath);
+			ifstream fileBuffer; fileBuffer.open(filePath);
 
 
 
@@ -202,10 +262,10 @@ namespace DGL
 				{
 					_vertexStream >> componentValue >> ws;
 
-					vertex.comp.push_back(componentValue);
+					vertex.AddComponent(componentValue);
 				}
 
-				Verticies.push_back(vertex.GetVector());
+				verticies.push_back(vertex.GetVector3());
 			};
 
 			deduce processNormals = [&](Ref(stringstream) _normalStream)
@@ -216,12 +276,12 @@ namespace DGL
 				{
 					_normalStream >> componentValue >> ws;
 
-					normal.comp.push_back(componentValue);
+					normal.AddComponent(componentValue);
 				}
 
 				normal.Normalize();
 
-				VertNormals.push_back(normal.GetVector());
+				normals.push_back(normal.GetVector3());
 			};
 
 			deduce processTexture = [&](Ref(stringstream) _normalStream)
@@ -232,10 +292,10 @@ namespace DGL
 				{
 					_normalStream >> componentValue >> ws;
 
-					texture.comp.push_back(componentValue);
+					texture.AddComponent(componentValue);
 				}
 
-				TextureMap.push_back(texture.GetVector2());
+				textureUVs.push_back(texture.GetVector2());
 			};
 
 			deduce processFace = [&](Ref(stringstream) _faceStream)
@@ -248,7 +308,7 @@ namespace DGL
 
 					faceMade.AddVertexIndex(vertexIndex - 1);
 
-					Indicies.push_back(vertexIndex - 1);
+					indicies.push_back(vertexIndex - 1);
 
 					if (_faceStream.peek() == '/')
 					{
@@ -262,7 +322,7 @@ namespace DGL
 
 							faceMade.AddNormalIndex(normalIndex -1);
 
-							Indicies.push_back(normalIndex - 1);
+							indicies.push_back(normalIndex - 1);
 						}
 						else
 						{
@@ -278,16 +338,14 @@ namespace DGL
 
 								faceMade.AddNormalIndex(normalIndex - 1);
 
-								Indicies.push_back(normalIndex - 1);
+								indicies.push_back(normalIndex - 1);
 							}
 						}
 					}
 				}
 
-				Faces.push_back(faceMade.GetFace());
+				faces.push_back(faceMade.GetFace());
 			};
-
-
 
 			if (fileBuffer.is_open())
 			{
@@ -325,130 +383,65 @@ namespace DGL
 					}
 				}
 
+				fileBuffer.close();
+
 				return;
 			}
 			else
 			{
 				throw std::runtime_error("Could not open file to load model.");
 			}
-
-			fileBuffer.close();
-		}
-
-
-
-		
-
-		sfn GenerateNormals()
-		{
-			VertNormals.resize(Verticies.size());
-
-			for (int index = 0; index < Faces.size(); index++)
-			{
-				int vertexIndex1 = Faces[index].Vertexes[0], 
-					vertexIndex2 = Faces[index].Vertexes[1],
-					vertexIndex3 = Faces[index].Vertexes[2];
-
-				Vector3 edge1 = Verticies[vertexIndex2] - Verticies[vertexIndex1],
-					    edge2 = Verticies[vertexIndex3] - Verticies[vertexIndex1],
-					    
-					normal = GetDirection(GetCrossNormal(edge1, edge2));
-
-				Faces[index].Normals[0] = vertexIndex1;
-				Faces[index].Normals[1] = vertexIndex2;
-				Faces[index].Normals[2] = vertexIndex3;
-
-				VertNormals[vertexIndex1] = normal;
-				VertNormals[vertexIndex2] = normal;
-				VertNormals[vertexIndex3] = normal;
-			}
-		}
-
-
-		template<typename Type>
-		sfn RoundOff(Type _value, gInt _numDigitsToKeep) -> Type
-		{
-			uInt64 Rounder = pow(10, _numDigitsToKeep);
-
-			return round(_value * Rounder) / Rounder;
-		}
-
-
-
-		// Hardcoded to only do the verticies and normals for now...
-		sfn Buffer()
-		{
-			GenerateVertexBuffers(Address(VAO), 1);
-			GenerateBuffers      (Address(VBO), 1);
-			GenerateBuffers      (Address(NBO), 1);
-			//glGenTextures        (1, Address(TBO));
-			GenerateBuffers      (Address(EBO), 1);
-
-
-			if (VertNormals.size() == 0)
-			{
-				GenerateNormals();
-			}
-
-			
-			BindVertexArray(VAO);
-
-			BindBuffer(EBufferTarget::VertexAttributes, VBO);
-
-			BufferData(Address(Verticies[0]), Verticies.size() * sizeof(Vector3), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
-
-			FormatVertexAttributes<Vector3>(0, EDataType::Float, ZeroOffset(), 3, EBool::False);
-
-			EnableVertexAttributeArray(0);
-
-
-
-			if (VertNormals.size() != 0)
-			{
-				BindBuffer(EBufferTarget::VertexAttributes, NBO);
-
-				BufferData(Address(VertNormals[0]), VertNormals.size() * sizeof(Vector3), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
-
-				FormatVertexAttributes<Vector3>(1, EDataType::Float, ZeroOffset(), 3, EBool::False);
-
-				EnableVertexAttributeArray(1);
-			}
-
-
-
-			/*if (TextureMap.size() != 0)
-			{
-				glBindTexture(TBO, GL_TEXTURE_2D);
-
-				BufferData(Address(TextureMap[0]), TextureMap.size() * sizeof(Vector2), EBufferTarget::TextureData, EBufferUsage::StaticDraw);
-
-				FormatVertexAttributes<Vector2>(2, EDataType::Float, ZeroOffset(), 2, EBool::False);
-
-				EnableVertexAttributeArray(2);
-			}*/
-
-
-
-			BindBuffer(EBufferTarget::VertexIndices, EBO);
-
-			BufferData(Address(Faces[0]), Faces.size() * sizeof(Face), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
-			
-			BindVertexArray(0);
 		}
 
 		sfn Render()
 		{
-			BindVertexArray(VAO);
+			BindVertexArray(vertexArrayID);
 
 			
-			gInt Size; GetBufferParameterIV(EBufferTarget::VertexIndices, EBufferParam::Size, Address(Size));
-
-			Size /= sizeof(gUInt);
+			gInt SizeRef; GetBufferParameterIV(EBufferTarget::VertexIndices, EBufferParam::Size, SizeRef); SizeRef /= sizeof(gUInt);
 
 
-			DrawElements(EPrimitives::Triangles, Size, EDataType::UnsignedInt, ZeroOffset());
+			DrawElements(EPrimitives::Triangles, SizeRef, EDataType::UnsignedInt, ZeroOffset());
 
- 			BindVertexArray(0);
+
+ 			UnbindVertexArray();
 		}
+
+		sfn operator= (ro Ref(Model) _model) -> Ref(Model)
+		{
+			vertexArrayID   = _model.vertexArrayID  ;
+			vertexBufferID  = _model.vertexBufferID ;
+			normalBuffferID = _model.normalBuffferID;
+			textureBufferID = _model.textureBufferID;
+			elementBufferID = _model.elementBufferID;
+
+			filePath = _model.filePath;
+
+			verticies  = _model.verticies ;
+			normals    = _model.normals   ;
+			textureUVs = _model.textureUVs;
+			faces      = _model.faces     ;
+			indicies   = _model.indicies  ;
+
+			return Dref(this);
+		}
+
+		private:
+
+			// Components
+
+			ID<VertexArray  > vertexArrayID  ;
+			ID<VertexBuffer > vertexBufferID ;
+			ID<NormalBuffer > normalBuffferID;
+			ID<TextureBuffer> textureBufferID;
+			ID<ElementBuffer> elementBufferID;
+
+			string filePath;
+
+			VertexList verticies ;
+			VertexList normals   ;
+			UVList     textureUVs;
+			FaceList   faces     ;
+			VIndexList indicies  ; 
 	};
 };
