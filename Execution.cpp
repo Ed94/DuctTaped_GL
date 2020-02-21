@@ -116,7 +116,8 @@ namespace Execution
 		       DeltaTime                     ,    // Delta between last cycle start and end. 
 		       InputInterval   = 1.0f / 144.0f,    // Interval per second to complete the input   process of the cycle.
 		       PhysicsInterval = 1.0f / 144.0f,    // Interval per second to complete the physics process of the cycle. 
-		       RenderInterval  = 1.0f / 144.0f ;   // Interval per second to complete the render  process of the cycle.
+		       RenderInterval  = 1.0f / 144.0f,  // Interval per second to complete the render  process of the cycle.
+	InputBuffer = 1.0f;
 
 	Window* DefaultWindow;   // Default window to use for execution.
 
@@ -128,15 +129,16 @@ namespace Execution
 		   CamRotationSpeed = 27.0f ;   // Rate at which the camera should rotate.
 
 	TimeValDec InputDelta   = 0.0,    // Current delta since last input   process. 
+		       InputBufferDelta = 0.0,
 		       PhysicsDelta = 0.0,    // Current delta since last physics process. 
 		       RenderDelta  = 0.0 ;   // Current delta since last render  process.
 
 	ActionQueue ActionsToComplete;   // Actions queue to run during the physics process of the cycle.
 
-	EModels CurrentModel = EModels::Torus;
+	EModels CurrentModel = EModels::Cube;
 
 	Model Bunny    ("./Models/bunny.obj"       );
-	Model Cube     ("./Models/blenderCube2.obj");
+	Model Cube     ("./Models/blendercube2.obj");
 	Model Eight    ("./Models/eight.obj"       );
 	Model Gargoyle ("./Models/gargoyle.obj"    );
 	Model Hand     ("./Models/hand.obj"        );
@@ -409,6 +411,9 @@ namespace Execution
 
 		SetPolygonMode(DGL::EFace::Front_and_Back, DGL::ERenderMode::Fill);
 
+		glShadeModel(GL_FLAT);
+
+
 		// Cursor stuff
 
 		SetInputMode(DefaultWindow, DGL::EMouseMode::Cursor, DGL::ECursorMode::Disable);
@@ -430,14 +435,14 @@ namespace Execution
 
 		Light.Load();
 
-		Torus.Load();
+		Cube.Load();
 
 		ObjectMaterial.Color    = DGL::Colors::WarmSphia.Vector();
 		ObjectMaterial.Ambience = 0.112f                         ;
 		ObjectMaterial.Diffuse  = 0.928f                         ;
 		ObjectMaterial.Specular = 0.21f                          ;
 
-		ObjectToView = Entity_Basic(Torus, ObjectMaterial);
+		ObjectToView = Entity_Basic(Cube, ObjectMaterial);
 	}
 
 
@@ -510,6 +515,8 @@ namespace Execution
 			InputDelta   += DeltaTime;
 			PhysicsDelta += DeltaTime;
 			RenderDelta  += DeltaTime;
+
+			InputBufferDelta += DeltaTime;
 		}
 
 		return;
@@ -517,7 +524,14 @@ namespace Execution
 
 	void InputProcedure(Window* _currentWindowContext)
 	{
-		if (KeyPressed(_currentWindowContext, EKeyCodes::F1))
+		static bool F1_Held = false, H_Held = false, M_Held = false;
+
+		if (!KeyPressed(_currentWindowContext, EKeyCodes::F1)) F1_Held = false;
+		if (!KeyPressed(_currentWindowContext, EKeyCodes::H )) H_Held  = false;
+		if (!KeyPressed(_currentWindowContext, EKeyCodes::M )) M_Held  = false;
+
+
+		if (KeyPressed(_currentWindowContext, EKeyCodes::F1) && not F1_Held)
 		{
 			ECursorMode cursorMode = ECursorMode(GetMouseInputMode(DefaultWindow, EMouseMode::Cursor));
 
@@ -538,15 +552,21 @@ namespace Execution
 
 				CursorOff = false;
 			}
+
+			F1_Held = true;
 		}
 
-		if (KeyPressed(_currentWindowContext, EKeyCodes::H))
+		if (KeyPressed(_currentWindowContext, EKeyCodes::H) && not H_Held)
 		{
+			H_Held = true;
+
 			ActionsToComplete.AddToQueue(ToogleLightDelegate);
 		}
 
-		if (KeyPressed(_currentWindowContext, EKeyCodes::M))
+		if (KeyPressed(_currentWindowContext, EKeyCodes::M) && not M_Held)
 		{
+			M_Held = true;
+
 			ActionsToComplete.AddToQueue(ChangeModelDelegate);
 		}
 

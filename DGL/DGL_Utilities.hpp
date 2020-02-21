@@ -28,7 +28,7 @@ namespace DGL
 	// Constants
 
 	 constexpr Window*  NotShared   () { return NULL; }
-     constexpr Monitor* WindowedMode() { return NULL; }
+	 constexpr Monitor* WindowedMode() { return NULL; }
 
 
 

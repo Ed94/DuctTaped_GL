@@ -83,7 +83,20 @@ namespace DGL
 	using UVList = std::vector < Vector2>;
 
 	using Vec2Int    = Generic::Vector2< gUInt  >;
-	using Vec3Int    = Generic::Vector3< gUInt  >;
+	
+	
+	struct Vec3Int
+	{
+		union
+		{
+			gUInt vec[3];
+			gUInt x, y, z;
+		};
+	};
+
+	//using Vec3Int    = Generic::Vector3< gUInt  >;
+
+
 	using VertexList = std    ::vector < Vector3>;
 
 

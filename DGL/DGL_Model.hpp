@@ -73,7 +73,7 @@ namespace DGL
 
 	struct Face
 	{
-		Vec3Int Vertexes, Normals;
+		Vec3Int Vertexes;
 	};
 
 	using FaceList = std::vector<Face>;
@@ -107,7 +107,7 @@ namespace DGL
 
 			for (int index = 0; index < 3; index++)
 			{
-				generated.Vertexes[index] = vertIndexes[index];
+				generated.Vertexes.vec[index] = vertIndexes[index];
 
 				if (index < 2)
 				{
@@ -119,7 +119,7 @@ namespace DGL
 
 				if (normals.size() > 0)
 				{
-					generated.Normals[index] = normals[index];
+					//generated.Normals.vec[index] = normals[index];
 				}
 			}
 
@@ -144,22 +144,40 @@ namespace DGL
 
 			for (int faceIndex = 0; faceIndex < faces.size(); faceIndex++)
 			{
-				int vertexIndex1 = faces[faceIndex].Vertexes[0],
-					vertexIndex2 = faces[faceIndex].Vertexes[1],
-					vertexIndex3 = faces[faceIndex].Vertexes[2];
+				int vertexIndex1 = faces[faceIndex].Vertexes.vec[0],
+					vertexIndex2 = faces[faceIndex].Vertexes.vec[1],
+					vertexIndex3 = faces[faceIndex].Vertexes.vec[2] ; 
 
-				Vector3 edge1 = verticies[vertexIndex2] - verticies[vertexIndex1],
-					    edge2 = verticies[vertexIndex3] - verticies[vertexIndex1],
+					Vector3 vert1 = verticies[vertexIndex1],
+					        vert2 = verticies[vertexIndex2],
+					        vert3 = verticies[vertexIndex3] ;
 
-					normal = GetDirection(GetCrossNormal(edge1, edge2));
+				Vector3 edge1 = vert2 - vert1,
+					    edge2 = vert3 - vert1,	
 
-				faces[faceIndex].Normals[0] = vertexIndex1;
-				faces[faceIndex].Normals[1] = vertexIndex2;
-				faces[faceIndex].Normals[2] = vertexIndex3;
+					normal = GetCrossNormal(edge1, edge2);
 
-				normals[vertexIndex1] = normal;
-				normals[vertexIndex2] = normal;
-				normals[vertexIndex3] = normal;
+
+				//faces[faceIndex].Normals.vec[0] = vertexIndex1;
+				//faces[faceIndex].Normals.vec[1] = vertexIndex2;
+				//faces[faceIndex].Normals.vec[2] = vertexIndex3;
+
+				normals[vertexIndex1] += normal;
+				normals[vertexIndex2] += normal;
+				normals[vertexIndex3] += normal;
+			}
+
+			for (int index = 0; index < normals.size(); index++)
+			{
+				/*gFloat magnitude = 0.0f;
+
+				magnitude = normals[index].x + normals[index].y + normals[index].z;
+
+				normals[index].x /= magnitude;
+				normals[index].y /= magnitude;
+				normals[index].z /= magnitude;*/
+
+				normals[index] = GetDirection(normals[index]);
 			}
 		}
 
@@ -246,6 +264,16 @@ namespace DGL
 
 
 			UnbindVertexArray();   // Unbind vertex array.
+
+			/*for (int index = 0; index < verticies.size(); index++)
+			{
+				cout << "Vertex: " << verticies[index].x << ", " << verticies[index].y << ", " << ", " << verticies[index].z << endl;
+			}
+
+			for (int index = 0; index < verticies.size(); index++)
+			{
+				cout << "Normal: " << normals[index].x << ", " << normals[index].y << ", " << ", " << normals[index].z << endl;
+			}*/
 		}
 
 		void Load()
