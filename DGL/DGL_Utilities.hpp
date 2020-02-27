@@ -1,5 +1,5 @@
 /*
-Title : Ducktaped GL: Utilities
+Title : Duct Taped GL: Utilities
 Author: Edward R. Gonzalez
 
 Description:

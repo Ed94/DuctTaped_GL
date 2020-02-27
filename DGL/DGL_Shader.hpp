@@ -1,5 +1,5 @@
 /*
-Title : Ducktaped GL: Shader
+Title : Duct Taped GL: Shader
 Author: Edward R. Gonzalez
 
 Description:

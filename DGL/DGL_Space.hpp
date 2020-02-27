@@ -1,5 +1,5 @@
 /*
-Title : Ducktaped GL: Space
+Title : Duct Taped GL: Space
 Author: Edward R. Gonzalez
 
 Description:

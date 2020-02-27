@@ -1,5 +1,5 @@
 /*
-Title : Ducktaped GL: Model
+Title : Duct Taped GL: Model
 Author: Edward R. Gonzalez
 
 Description:

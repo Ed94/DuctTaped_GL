@@ -1,5 +1,5 @@
 /*
-Title : Ducktaped GL: Enums
+Title : Duct Taped GL: Enums
 Author: Edward R. Gonzalez
 
 Description:

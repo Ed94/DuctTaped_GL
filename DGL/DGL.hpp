@@ -1,5 +1,5 @@
 /*
-Title : Ducktaped GL: Library Head
+Title : Duct Taped GL: Library Head
 Author: Edward R. Gonzalez
 
 Description:

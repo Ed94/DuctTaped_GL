@@ -1,5 +1,5 @@
 /*
-Title : Ducktaped GL: Buffers
+Title : Duct Taped GL: Buffers
 Author: Edward R. Gonzalez
 
 Description:

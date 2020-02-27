@@ -1,5 +1,5 @@
 /*
-Title : Ducktaped GL: Entity
+Title : Duct Taped GL: Entity
 Author: Edward R. Gonzalez
 
 Description:
