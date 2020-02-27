@@ -1,3 +1,12 @@
+/*
+Title : Ducktaped GL: Utilities
+Author: Edward R. Gonzalez
+
+Description:
+The header with the general functionality for using glm/glfw/glew.
+*/
+
+
 #pragma once
 
 // GLFW, GLEW, GLM
@@ -16,6 +25,7 @@
 
 // Non-Standard C+
 #include "Cpp_Alias.hpp"
+
 
 
 namespace DGL
@@ -230,6 +240,11 @@ namespace DGL
 		glPolygonMode(GLenum(_desiredFaces), GLenum(_desiredMode));
 
 		return;
+	}
+
+	void SetWindowHeader(Window* const _window, string _title)
+	{
+		glfwSetWindowTitle(_window, _title.c_str());
 	}
 
 	void SwapBuffers(Window* const _window)

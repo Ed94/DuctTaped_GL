@@ -91,7 +91,7 @@ namespace DGL
 			transform = Translate(transform, position);
 			transform = Scale    (transform, scale   );
 
-			valueLoop += 0.31879f * _delta;
+			valueLoop += 0.31879f * gFloat(_delta);
 
 			return;
 		}
@@ -232,9 +232,9 @@ namespace DGL
 
 			transform = CoordSpace(1.0f);
 
-			transform = DGL::Translate(transform, position);
+			transform = Translate(transform, position);
 
-			transform = DGL::Scale(transform, scale);
+			transform = Scale(transform, scale);
 
 			return;
 		}
@@ -245,9 +245,9 @@ namespace DGL
 
 			transform = CoordSpace(1.0f);
 
-			transform = DGL::Translate(transform, position);
+			transform = Translate(transform, position);
 
-			transform = DGL::Scale(transform, scale);
+			transform = Scale(transform, scale);
 
 			return;
 		}
@@ -281,7 +281,7 @@ namespace DGL
 
 	private:
 
-		//EEntityType type;
+		// EEntityType type;
 
 		Vector3        position     ;
 		Vector3        scale        ;

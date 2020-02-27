@@ -1,3 +1,12 @@
+/*
+Title : Ducktaped GL: Shader
+Author: Edward R. Gonzalez
+
+Description:
+All the wrappers for the openGL shader related and and implementation of a basic light and phong shader.
+*/
+
+
 #pragma once
 
 //DGL

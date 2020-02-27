@@ -1,3 +1,11 @@
+/*
+Title : Ducktaped GL: Space
+Author: Edward R. Gonzalez
+
+Description:
+Contains related functionality for dealing with 3D-Space, and viewing.
+*/
+
 #pragma once
 
 // GLM

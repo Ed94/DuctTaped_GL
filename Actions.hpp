@@ -257,6 +257,7 @@ namespace Actions
 			return returnRef;
 		}
 
+		// TODO: Not yet working
 		template<typename ObjectType, typename FunctionType, typename... ActionParams>
 		IAction* Request_AAction(const ObjectType& _objectRef, const function< FunctionType>& _actionToQueue, const ActionParams&... _paramsForAction)
 		{
@@ -274,11 +275,11 @@ namespace Actions
 				{
 					ActionType* castedEntry = static_cast<ActionType*>(possibleAction->get());
 
-					if (castedEntry->IsSame(_actionToQueue, _paramsForAction...))
+					if (castedEntry->IsSame(_objectRef, _actionToQueue, _paramsForAction...))
 					{
 						return castedEntry;
 					}
-					else if (castedEntry->Used() && castedEntry->SameAction(_actionToQueue))
+					else if (castedEntry->Used() && castedEntry->SameAction(_actionToQueue) && castedEntry->SameObject(_objectRef))
 					{
 						castedEntry->ReInitalize(_paramsForAction...);
 
@@ -286,16 +287,16 @@ namespace Actions
 					}
 				}
 
-				shared_ptr< IAction> newAction = make_shared< AAction<FunctionType, ActionParams...>>(_actionToQueue, _paramsForAction...);
-				            IAction* returnRef = newAction.get                                                                          ();
+				shared_ptr< IAction> newAction = make_shared< AAction_ObjectBound<ObjectType, FunctionType, ActionParams...>>(_actionToQueue, _paramsForAction...);
+				            IAction* returnRef = newAction.get                                                                                                  ();
 
 				aActions_Available.at(AActionID).push_front(newAction);
 
 				return returnRef;
 			}
 
-			shared_ptr< IAction> newAction = make_shared< AAction<FunctionType, ActionParams...>>(_actionToQueue, _paramsForAction...);
-			            IAction* returnRef = newAction.get                                                                          ();
+			shared_ptr< IAction> newAction = make_shared< AAction_ObjectBound<ObjectType, FunctionType, ActionParams...>>(_actionToQueue, _paramsForAction...);
+			            IAction* returnRef = newAction.get                                                                                                  ();
 
 			aActions_Available.insert(std::make_pair(AActionID, Make_Managed_Actions()));
 

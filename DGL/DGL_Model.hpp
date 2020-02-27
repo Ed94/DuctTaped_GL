@@ -3,7 +3,7 @@ Title : Ducktaped GL: Model
 Author: Edward R. Gonzalez
 
 Description:
-
+Allows the management of loading and buffer/rendering models from wavefront obj file sources.
 */
 
 #pragma once
@@ -120,6 +120,8 @@ namespace DGL
 				if (normals.size() > 0)
 				{
 					//generated.Normals.vec[index] = normals[index];
+
+					// Not using built in normals for now...
 				}
 			}
 
@@ -157,11 +159,6 @@ namespace DGL
 
 					normal = GetCrossNormal(edge1, edge2);
 
-
-				//faces[faceIndex].Normals.vec[0] = vertexIndex1;
-				//faces[faceIndex].Normals.vec[1] = vertexIndex2;
-				//faces[faceIndex].Normals.vec[2] = vertexIndex3;
-
 				normals[vertexIndex1] += normal;
 				normals[vertexIndex2] += normal;
 				normals[vertexIndex3] += normal;
@@ -169,14 +166,6 @@ namespace DGL
 
 			for (int index = 0; index < normals.size(); index++)
 			{
-				/*gFloat magnitude = 0.0f;
-
-				magnitude = normals[index].x + normals[index].y + normals[index].z;
-
-				normals[index].x /= magnitude;
-				normals[index].y /= magnitude;
-				normals[index].z /= magnitude;*/
-
 				normals[index] = GetDirection(normals[index]);
 			}
 		}
@@ -201,6 +190,8 @@ namespace DGL
 		// Hardcoded to only do the verticies and normals for now...
 		void Buffer()
 		{
+			// Generate buffers
+
 			GenerateVertexBuffers(vertexArrayID  , 1);
 			GenerateBuffers      (vertexBufferID , 1);
 			GenerateBuffers      (normalBuffferID, 1);
@@ -256,24 +247,11 @@ namespace DGL
 			}
 
 
-
 			BindBuffer(EBufferTarget::VertexIndices, elementBufferID);
 
 			BufferData(faces[0], gSize(faces.size() * sizeof(Face)), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
 
-
-
 			UnbindVertexArray();   // Unbind vertex array.
-
-			/*for (int index = 0; index < verticies.size(); index++)
-			{
-				cout << "Vertex: " << verticies[index].x << ", " << verticies[index].y << ", " << ", " << verticies[index].z << endl;
-			}
-
-			for (int index = 0; index < verticies.size(); index++)
-			{
-				cout << "Normal: " << normals[index].x << ", " << normals[index].y << ", " << ", " << normals[index].z << endl;
-			}*/
 		}
 
 		void Load()

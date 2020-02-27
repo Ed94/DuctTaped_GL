@@ -75,6 +75,7 @@ namespace Execution
 		using DGL::SetInputMode               ;
 		using DGL::SetPolygonMode             ;
 		using DGL::SetUniformVariable_MVA     ;
+		using DGL::SetWindowHeader            ;
 		using DGL::SwapBuffers                ;
 		using DGL::UseProgramShader           ;
 		using DGL::TerminateGLFW              ;
@@ -97,7 +98,6 @@ namespace Execution
 	enum class EModels
 	{
 		Bunny    ,
-		Cube     ,
 		Eight    ,
 		Gargoyle ,
 		Hand     ,
@@ -111,34 +111,32 @@ namespace Execution
 
 	bool Exist = true;   // Determines if the the execution should exit cycler.
 
-	TimeValDec CycleStart                    ,    // Snapshot of cycle loop start time. 
-		       CycleEnd                      ,    // Snapshot of cycle loop end   time. 
-		       DeltaTime                     ,    // Delta between last cycle start and end. 
+	TimeValDec CycleStart                     ,    // Snapshot of cycle loop start time. 
+		       CycleEnd                       ,    // Snapshot of cycle loop end   time. 
+		       DeltaTime                      ,    // Delta between last cycle start and end. 
 		       InputInterval   = 1.0f / 144.0f,    // Interval per second to complete the input   process of the cycle.
 		       PhysicsInterval = 1.0f / 144.0f,    // Interval per second to complete the physics process of the cycle. 
-		       RenderInterval  = 1.0f / 144.0f,  // Interval per second to complete the render  process of the cycle.
-	InputBuffer = 1.0f;
+		       RenderInterval  = 1.0f / 144.0f ;   // Interval per second to complete the render  process of the cycle.
 
 	Window* DefaultWindow;   // Default window to use for execution.
 
 	double CursorX, CursorY;   // Cursor axis position on the window.
 
-	bool CursorOff = true, ShowLight = true;
+	bool CursorOff = true,
+		 ShowLight = true ;
 
 	gFloat CamMoveSpeed     =  7.0f,    // Rate at which the camera should move.
 		   CamRotationSpeed = 27.0f ;   // Rate at which the camera should rotate.
 
 	TimeValDec InputDelta   = 0.0,    // Current delta since last input   process. 
-		       InputBufferDelta = 0.0,
 		       PhysicsDelta = 0.0,    // Current delta since last physics process. 
 		       RenderDelta  = 0.0 ;   // Current delta since last render  process.
 
 	ActionQueue ActionsToComplete;   // Actions queue to run during the physics process of the cycle.
 
-	EModels CurrentModel = EModels::Cube;
+	EModels CurrentModel = EModels::Bunny;
 
 	Model Bunny    ("./Models/bunny.obj"       );
-	Model Cube     ("./Models/blendercube2.obj");
 	Model Eight    ("./Models/eight.obj"       );
 	Model Gargoyle ("./Models/gargoyle.obj"    );
 	Model Hand     ("./Models/hand.obj"        );
@@ -152,7 +150,6 @@ namespace Execution
 	Light_Basic  Light       ;   // Hardcoded light. Rotates around object.
 	Entity_Basic ObjectToView;   // Object that will be currently in the middle with the light source rotating.
 
-
 	string 
 		windowTitle     = "Assignment 1"    , 
 		deltaStr        = "Delta: "         , 
@@ -161,7 +158,6 @@ namespace Execution
 		renderDeltaStr  = "RenderDeltaStr: " ;
 
 	stringstream WindowTitle;
-
 
 
 
@@ -184,7 +180,7 @@ namespace Execution
 		{
 			if (not Bunny.Ready())
 			{
-				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Bunny...");
+				SetWindowHeader(DefaultWindow, "Assignment 1: Loading Bunny...");
 
 				Bunny.Load();
 			}
@@ -197,28 +193,11 @@ namespace Execution
 
 			return;
 		}
-		case EModels::Cube:
-		{
-			if (not Cube.Ready())
-			{
-				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Cube...");
-
-				Cube.Load();
-			}
-
-			ObjectToView.SetModel(Cube);
-
-			ObjectToView.SetScale(1.0f);
-
-			ObjectToView.SetPosition(Vector3(0, -1.0, 0));
-
-			return;
-		}
 		case EModels::Eight:
 		{
 			if (not Eight.Ready())
 			{
-				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Eight...");
+				SetWindowHeader(DefaultWindow, "Assignment 1: Loading Eight...");
 
 				Eight.Load();
 			}
@@ -235,7 +214,7 @@ namespace Execution
 		{
 			if (not Gargoyle.Ready())
 			{
-				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Gargoyle...");
+				SetWindowHeader(DefaultWindow, "Assignment 1: Loading Gargoyle...");
 
 				Gargoyle.Load();
 			}
@@ -252,7 +231,7 @@ namespace Execution
 		{
 			if (not Hand.Ready())
 			{
-				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Hand...");
+				SetWindowHeader(DefaultWindow, "Assignment 1: Loading Hand...");
 
 				Hand.Load();
 			}
@@ -263,14 +242,13 @@ namespace Execution
 
 			ObjectToView.SetPosition(Vector3(0, -1.1f, 0));
 
-
 			return;
 		}
 		case EModels::Sculpture:
 		{
 			if (not Sculpture.Ready())
 			{
-				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Sculpture...");
+				SetWindowHeader(DefaultWindow, "Assignment 1: Loading Sculpture...");
 
 				Sculpture.Load();
 			}
@@ -285,7 +263,7 @@ namespace Execution
 		{
 			if (not Topology.Ready())
 			{
-				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Topology...");
+				SetWindowHeader(DefaultWindow, "Assignment 1: Loading Topology...");
 
 				Topology.Load();
 			}
@@ -300,7 +278,7 @@ namespace Execution
 		{
 			if (not Torus.Ready())
 			{
-				glfwSetWindowTitle(DefaultWindow, "Assignment 1: Loading Torus...");
+				SetWindowHeader(DefaultWindow, "Assignment 1: Loading Torus...");
 
 				Torus.Load();
 			}
@@ -411,8 +389,6 @@ namespace Execution
 
 		SetPolygonMode(DGL::EFace::Front_and_Back, DGL::ERenderMode::Fill);
 
-		glShadeModel(GL_FLAT);
-
 
 		// Cursor stuff
 
@@ -435,14 +411,14 @@ namespace Execution
 
 		Light.Load();
 
-		Cube.Load();
+		Bunny.Load();
 
 		ObjectMaterial.Color    = DGL::Colors::WarmSphia.Vector();
 		ObjectMaterial.Ambience = 0.112f                         ;
 		ObjectMaterial.Diffuse  = 0.928f                         ;
 		ObjectMaterial.Specular = 0.21f                          ;
 
-		ObjectToView = Entity_Basic(Cube, ObjectMaterial);
+		ObjectToView = Entity_Basic(Bunny, ObjectMaterial);
 	}
 
 
@@ -515,8 +491,6 @@ namespace Execution
 			InputDelta   += DeltaTime;
 			PhysicsDelta += DeltaTime;
 			RenderDelta  += DeltaTime;
-
-			InputBufferDelta += DeltaTime;
 		}
 
 		return;
@@ -530,8 +504,8 @@ namespace Execution
 		if (!KeyPressed(_currentWindowContext, EKeyCodes::H )) H_Held  = false;
 		if (!KeyPressed(_currentWindowContext, EKeyCodes::M )) M_Held  = false;
 
-
-		if (KeyPressed(_currentWindowContext, EKeyCodes::F1) && not F1_Held)
+		// TODO: Not necessary for now and throws memory error.
+		/*if (KeyPressed(_currentWindowContext, EKeyCodes::F1) && not F1_Held)
 		{
 			ECursorMode cursorMode = ECursorMode(GetMouseInputMode(DefaultWindow, EMouseMode::Cursor));
 
@@ -554,7 +528,7 @@ namespace Execution
 			}
 
 			F1_Held = true;
-		}
+		}*/
 
 		if (KeyPressed(_currentWindowContext, EKeyCodes::H) && not H_Held)
 		{
@@ -673,7 +647,7 @@ namespace Execution
 	
 	void RenderProcedure()
 	{
-		glfwSetWindowTitle(DefaultWindow, WindowTitle.str().c_str());
+		SetWindowHeader(DefaultWindow, WindowTitle.str());
 
 		if (ShowLight)
 		{

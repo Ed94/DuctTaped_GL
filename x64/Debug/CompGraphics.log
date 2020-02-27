@@ -1,3 +1,0 @@
-﻿  Execution.cpp
-F:\Projects\CompGraphics\CompGraphics\DGL\DGL_Entity.hpp(94,1): warning C4244: '+=': conversion from 'double' to 'DGL::gFloat', possible loss of data
-  CompGraphics.vcxproj -> F:\Projects\CompGraphics\x64\Debug\CompGraphics.exe
