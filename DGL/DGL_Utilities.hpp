@@ -151,7 +151,7 @@ namespace DGL
 	void InitalizeGLEW()
 	{
 		// If using GLEW version 1.13 or earlier
-		//glewExperimental = true;
+		glewExperimental = true;
 
 		std::cout << "Initializing Glew Version: " << glewGetString(GLEW_VERSION) << std::endl;
 

@@ -127,6 +127,8 @@ namespace DGL
 		F1        = GLFW_KEY_F1        ,
 		F2        = GLFW_KEY_F2        ,
 		F3        = GLFW_KEY_F3        ,
+		F4        = GLFW_KEY_F4        ,
+		F5        = GLFW_KEY_F5        ,
 		A         = GLFW_KEY_A         ,
 		D         = GLFW_KEY_D         ,
 		E         = GLFW_KEY_E         ,

@@ -25,10 +25,14 @@ namespace DGL
 {
 	namespace Colors
 	{
-		LinearColor Coral    (1.0f , 0.5f , 0.31f, 1.0f);
-		LinearColor Grey     (0.60f, 0.60f, 0.60f, 1.0f);
-		LinearColor WarmSphia(0.54f, 0.52f, 0.5f , 1.0f);
-		LinearColor White    (1.0f , 1.0f , 1.0f , 1.0f);
+		LinearColor Blue     (0.3f  , 0.3f , 0.6f , 1.0f);
+		LinearColor Coral    (1.0f  , 0.5f , 0.31f, 1.0f);
+		LinearColor DarkTone (0.21f , 0.21f, 0.21f, 1.0f);
+		LinearColor Green    (0.10f , 0.60f, 0.20f, 1.0f);
+		LinearColor Grey     (0.60f , 0.60f, 0.60f, 1.0f);
+		LinearColor Red      (0.436f, 0.04f, 0.01f, 1.0f);
+		LinearColor WarmSphia(0.54f , 0.52f, 0.5f , 1.0f);
+		LinearColor White    (0.8f  , 0.80f, 0.80f, 1.0f);
 	}
 
 	
@@ -205,6 +209,7 @@ namespace DGL
 	public:
 		Entity_Basic() : 
 			position (Vector3(0.0f)   ),
+			rotation (Vector3(0.0f)   ),
 			scale    (Vector3(1.0f)   ),
 			model    (NULL            ),
 			transform(CoordSpace(1.0f))
@@ -212,12 +217,18 @@ namespace DGL
 
 		Entity_Basic(Model& _model, Material_Phong& _material) :
 			position (Vector3(0.0f)   ),
+			rotation (Vector3(0.0f)   ),
 			scale    (Vector3(1.0f)   ),
 			model    (&_model         ),
 			transform(CoordSpace(1.0f)),
 			material (_material       )
 			//type     (_type        )
 		{};
+
+		void SetMaterial(Material_Phong& _material)
+		{
+			material = _material;
+		}
 
 		void SetModel(Model& _model)
 		{
@@ -230,12 +241,6 @@ namespace DGL
 		{
 			scale = Vector3(_scaleBy);
 
-			transform = CoordSpace(1.0f);
-
-			transform = Translate(transform, position);
-
-			transform = Scale(transform, scale);
-
 			return;
 		}
 
@@ -243,18 +248,47 @@ namespace DGL
 		{
 			position = _position;
 
-			transform = CoordSpace(1.0f);
+			return;
+		}
 
-			transform = Translate(transform, position);
+		void Rotate(gFloat _rotationAmount, EAxis _axis)
+		{
+			switch (_axis)
+			{
+			case EAxis::X:
+			{
+				rotation.x += _rotationAmount;
 
-			transform = Scale(transform, scale);
+				break;
+			}
+			case EAxis::Y:
+			{
+				rotation.y += _rotationAmount;
+
+				break;
+			}
+			case EAxis::Z:
+			{
+				rotation.z += _rotationAmount;
+
+				break;
+			}
+			}
 
 			return;
 		}
 
 		void Update()
 		{
-			
+			transform = CoordSpace(1.0f);
+
+			transform = DGL::Translate(transform, position);
+
+			transform = DGL::Rotate(transform, rotation.x, Vector3(1, 0, 0));
+			transform = DGL::Rotate(transform, rotation.y, Vector3(0, 1, 0));
+			transform = DGL::Rotate(transform, rotation.z, Vector3(0, 0, 1));
+
+			transform = DGL::Scale(transform, scale);
 		}
 
 		void Render(const CoordSpace& _projection, const CoordSpace& _viewport, const Vector3& _lightPosition, const VecColor& _lightColor)
@@ -283,10 +317,11 @@ namespace DGL
 
 		// EEntityType type;
 
-		Vector3        position     ;
-		Vector3        scale        ;
-		Model*         model        ;
-		CoordSpace     transform    ;
-		Material_Phong material     ;
+		Vector3        position ;
+		Vector3        rotation ;
+		Vector3        scale    ;
+		Model*         model    ;
+		CoordSpace     transform;
+		Material_Phong material ;
 	};
 }

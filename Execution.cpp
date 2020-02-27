@@ -31,6 +31,7 @@ namespace Execution
 	{
 		// DGL
 
+		using DGL::EAxis        ;
 		using DGL::EBool        ;
 		using DGL::ECursorMode  ;
 		using DGL::EDirection   ;
@@ -101,6 +102,7 @@ namespace Execution
 		Eight    ,
 		Gargoyle ,
 		Hand     ,
+		Horse    ,
 		Sculpture,
 		Topology ,
 		Torus
@@ -111,19 +113,21 @@ namespace Execution
 
 	bool Exist = true;   // Determines if the the execution should exit cycler.
 
-	TimeValDec CycleStart                     ,    // Snapshot of cycle loop start time. 
-		       CycleEnd                       ,    // Snapshot of cycle loop end   time. 
-		       DeltaTime                      ,    // Delta between last cycle start and end. 
-		       InputInterval   = 1.0f / 144.0f,    // Interval per second to complete the input   process of the cycle.
-		       PhysicsInterval = 1.0f / 144.0f,    // Interval per second to complete the physics process of the cycle. 
-		       RenderInterval  = 1.0f / 144.0f ;   // Interval per second to complete the render  process of the cycle.
+	TimeValDec CycleStart                    ,    // Snapshot of cycle loop start time. 
+		       CycleEnd                      ,    // Snapshot of cycle loop end   time. 
+		       DeltaTime                     ,    // Delta between last cycle start and end. 
+		       InputInterval   = 1.0f / 60.0f,    // Interval per second to complete the input   process of the cycle.
+		       PhysicsInterval = 1.0f / 60.0f,    // Interval per second to complete the physics process of the cycle. 
+		       RenderInterval  = 1.0f / 60.0f ;   // Interval per second to complete the render  process of the cycle.
 
 	Window* DefaultWindow;   // Default window to use for execution.
 
 	double CursorX, CursorY;   // Cursor axis position on the window.
 
-	bool CursorOff = true,
-		 ShowLight = true ;
+	bool CursorOff  = true,
+		 ShowLight  = true,
+		 RotateObj  = true,
+		 OrbitLight = true ;
 
 	gFloat CamMoveSpeed     =  7.0f,    // Rate at which the camera should move.
 		   CamRotationSpeed = 27.0f ;   // Rate at which the camera should rotate.
@@ -145,7 +149,7 @@ namespace Execution
 	Model Topology ("./Models/topology.obj"    );
 	Model Torus    ("./Models/Torus.obj"       );
 
-	Material_Phong ObjectMaterial;
+	Material_Phong ObjectMaterial;   // Material to use on the model.
 
 	Light_Basic  Light       ;   // Hardcoded light. Rotates around object.
 	Entity_Basic ObjectToView;   // Object that will be currently in the middle with the light source rotating.
@@ -162,6 +166,8 @@ namespace Execution
 
 
 	// Functionality
+
+	// Input Action functions...
 
 	void ChangeModel()
 	{
@@ -191,6 +197,13 @@ namespace Execution
 
 			ObjectToView.SetPosition(Vector3(-0.05, -4.4f, 0));
 
+			ObjectMaterial.Color    = DGL::Colors::White.Vector();
+			ObjectMaterial.Ambience = 0.300f                     ;
+			ObjectMaterial.Diffuse  = 1.000f                     ;
+			ObjectMaterial.Specular = 0.910f                     ;	
+
+			ObjectToView.SetMaterial(ObjectMaterial);
+
 			return;
 		}
 		case EModels::Eight:
@@ -204,9 +217,16 @@ namespace Execution
 
 			ObjectToView.SetModel(Eight);
 
-			//ObjectToView.Scale(1.0f);
+			ObjectToView.SetScale(2.0f);
 
 			ObjectToView.SetPosition(Vector3(0, -1.0, 0));
+
+			ObjectMaterial.Color    = DGL::Colors::Blue.Vector();
+			ObjectMaterial.Ambience = 0.112f                    ;
+			ObjectMaterial.Diffuse  = 0.828f                    ;
+			ObjectMaterial.Specular = 0.421f                    ;
+
+			ObjectToView.SetMaterial(ObjectMaterial);
 
 			return;
 		}
@@ -225,6 +245,13 @@ namespace Execution
 
 			ObjectToView.SetScale(6.0f);
 
+			ObjectMaterial.Color    = DGL::Colors::Red.Vector();
+			ObjectMaterial.Ambience = 0.001f                   ;
+			ObjectMaterial.Diffuse  = 0.658f                   ;
+			ObjectMaterial.Specular = 0.821f                   ;
+
+			ObjectToView.SetMaterial(ObjectMaterial);
+
 			return;
 		}
 		case EModels::Hand:
@@ -242,6 +269,43 @@ namespace Execution
 
 			ObjectToView.SetPosition(Vector3(0, -1.1f, 0));
 
+			ObjectMaterial.Color    = DGL::Colors::DarkTone.Vector();
+			ObjectMaterial.Ambience = 0.000f                        ;
+			ObjectMaterial.Diffuse  = 1.000f                        ;
+			ObjectMaterial.Specular = 0.640f                        ;
+
+			ObjectToView.SetMaterial(ObjectMaterial);
+
+			SetClearColor(LinearColor(0.53f, 0.53f, 0.53f, 1.0f));
+
+			return;
+		}
+		case EModels::Horse:
+		{
+			if (not Horse.Ready())
+			{
+				SetWindowHeader(DefaultWindow, "Assignment 1: Loading Horse...");
+
+				Horse.Load();
+			}
+
+			ObjectToView.SetModel(Horse);
+
+			ObjectToView.SetScale(20.0f);
+
+			ObjectToView.Rotate(90.0f, EAxis::X);
+
+			ObjectToView.SetPosition(Vector3(0, 0.0f, 0));
+
+			ObjectMaterial.Color    = DGL::Colors::Green.Vector();
+			ObjectMaterial.Ambience = 0.000f                     ;
+			ObjectMaterial.Diffuse  = 1.000f                     ;
+			ObjectMaterial.Specular = 0.640f                     ;
+
+			ObjectToView.SetMaterial(ObjectMaterial);
+
+			SetClearColor(LinearColor(0.02f, 0.02f, 0.02f, 1.0f));
+
 			return;
 		}
 		case EModels::Sculpture:
@@ -256,6 +320,15 @@ namespace Execution
 			ObjectToView.SetModel(Sculpture);
 
 			ObjectToView.SetScale(0.01f);
+
+			ObjectToView.Rotate(-90.0f, EAxis::X);
+
+			ObjectMaterial.Color    = DGL::Colors::WarmSphia.Vector();
+			ObjectMaterial.Ambience = 0.112f                         ;
+			ObjectMaterial.Diffuse  = 0.928f                         ;
+			ObjectMaterial.Specular = 0.21f                          ;
+
+			ObjectToView.SetMaterial(ObjectMaterial);
 
 			return;
 		}
@@ -272,6 +345,13 @@ namespace Execution
 
 			ObjectToView.SetScale(0.2f);
 
+			ObjectMaterial.Color    = DGL::Colors::Coral.Vector();
+			ObjectMaterial.Ambience = 0.212f                     ;
+			ObjectMaterial.Diffuse  = 0.728f                     ;
+			ObjectMaterial.Specular = 0.41f                      ;
+
+			ObjectToView.SetMaterial(ObjectMaterial);
+
 			return;
 		}
 		case EModels::Torus:
@@ -287,33 +367,38 @@ namespace Execution
 
 			ObjectToView.SetScale(1.0f);
 
+			ObjectMaterial.Color    = DGL::Colors::Grey.Vector();
+			ObjectMaterial.Ambience = 0.170f                    ;
+			ObjectMaterial.Diffuse  = 0.720f                    ;
+			ObjectMaterial.Specular = 0.100f                    ;
+
+			ObjectToView.SetMaterial(ObjectMaterial);
+
 			return;
 		}
 		}
 	}
 
-	auto ChangeModelDelegate = function<decltype(ChangeModel)>(ChangeModel);
-
-	
 	void ToggleLight()
 	{
-		if (ShowLight)
-		{
-			ShowLight = false;
+		ShowLight ? ShowLight = false : ShowLight = true;
 
-			return;
-		}
-		else
-		{
-			ShowLight = true;
-
-			return;
-		}
+		return;
 	}
-	
-	auto ToogleLightDelegate = function<decltype(ToggleLight)>(ToggleLight);
-	
-	// Input Action common functions...
+
+	void ToggleModelRotation()
+	{
+		RotateObj ? RotateObj = false : RotateObj = true;
+
+		return;
+	}
+
+	void ToogleLightOrbit()
+	{
+		OrbitLight ? OrbitLight = false : OrbitLight = true;
+
+		return;
+	}
 
 	void RotateCamera(ERotationAxis _rotationAxis, gFloat _rotationAmount, double _delta)
 	{
@@ -322,9 +407,6 @@ namespace Execution
 		return;
 	} 
 	
-	auto RotateCamDelegate = function<decltype(RotateCamera)>(RotateCamera);
-
-
 	void MoveCamera(EDirection _direction, gFloat _translationAmount, double _delta)
 	{
 		WorldCamera.Move(_direction, _translationAmount, gFloat(_delta));
@@ -332,10 +414,6 @@ namespace Execution
 		return;
 	} 
 	
-	auto MoveCamDelegate = function<decltype(MoveCamera)>(MoveCamera);
-
-
-	// This is here cause its super repetitive..
 	void ModifyCamSpeed(bool _isPositive, double _delta)
 	{
 		if (_isPositive)
@@ -351,12 +429,9 @@ namespace Execution
 			return;
 		}
 	}
-
-	auto ModifyCamSpeedDelegate = function<decltype(ModifyCamSpeed)>(ModifyCamSpeed);
-	auto SetPolyModeDelegate    = function<decltype(SetPolygonMode)>(SetPolygonMode);
-
-
+	
 	// End of common input functions...
+
 
 	void UpdateWindowDeltaTitle()
 	{
@@ -369,7 +444,6 @@ namespace Execution
 			<< physicsDeltaStr << PhysicsDelta << "  " 
 			<< renderDeltaStr  << RenderDelta         ;
 	}
-
 
 
 	// Currently Does everything required before entering the cycler.
@@ -403,6 +477,7 @@ namespace Execution
 
 		// End of cursor stuff...
 
+
 		// Shaders
 
 		LoadDefaultShaders();
@@ -413,12 +488,16 @@ namespace Execution
 
 		Bunny.Load();
 
-		ObjectMaterial.Color    = DGL::Colors::WarmSphia.Vector();
-		ObjectMaterial.Ambience = 0.112f                         ;
-		ObjectMaterial.Diffuse  = 0.928f                         ;
-		ObjectMaterial.Specular = 0.21f                          ;
+		ObjectMaterial.Color    = DGL::Colors::White.Vector();
+		ObjectMaterial.Ambience = 0.300f                     ;
+		ObjectMaterial.Diffuse  = 1.000f                     ;
+		ObjectMaterial.Specular = 0.910f                     ;
 
 		ObjectToView = Entity_Basic(Bunny, ObjectMaterial);
+
+		ObjectToView.SetScale(4.0f);
+
+		ObjectToView.SetPosition(Vector3(-0.05, -4.4f, 0));
 	}
 
 
@@ -470,8 +549,6 @@ namespace Execution
 			{
 				ClearBuffer(EFrameBuffer::Color, EFrameBuffer::Depth);
 
-				SetClearColor(LinearColor(0.02f, 0.02f, 0.02f, 1.0f));
-
 				_renderProcedure();
 
 				SwapBuffers(DefaultWindow);
@@ -496,11 +573,30 @@ namespace Execution
 		return;
 	}
 
+
+
+	// Input functionality delegates (These are made due to a limitation with the actions implementation).
+
+	auto ChangeModelDelegate         = function<decltype(ChangeModel        )>(ChangeModel        );
+	auto ToogleLightDelegate         = function<decltype(ToggleLight        )>(ToggleLight        );
+	auto ToggleModelRotationDelegate = function<decltype(ToggleModelRotation)>(ToggleModelRotation);
+	auto ToggleLightOrbitDelegate    = function<decltype(ToogleLightOrbit   )>(ToogleLightOrbit   );
+	auto RotateCamDelegate           = function<decltype(RotateCamera       )>(RotateCamera       );
+	auto MoveCamDelegate             = function<decltype(MoveCamera         )>(MoveCamera         );
+	auto ModifyCamSpeedDelegate      = function<decltype(ModifyCamSpeed     )>(ModifyCamSpeed     );
+	auto SetPolyModeDelegate         = function<decltype(SetPolygonMode     )>(SetPolygonMode     );
+
 	void InputProcedure(Window* _currentWindowContext)
 	{
-		static bool F1_Held = false, H_Held = false, M_Held = false;
+		static bool F1_Held = false, 
+			        F4_Held = false, 
+			        F5_Held = false, 
+			        H_Held  = false, 
+			        M_Held  = false ;
 
 		if (!KeyPressed(_currentWindowContext, EKeyCodes::F1)) F1_Held = false;
+		if (!KeyPressed(_currentWindowContext, EKeyCodes::F4)) F4_Held = false;
+		if (!KeyPressed(_currentWindowContext, EKeyCodes::F5)) F5_Held = false;
 		if (!KeyPressed(_currentWindowContext, EKeyCodes::H )) H_Held  = false;
 		if (!KeyPressed(_currentWindowContext, EKeyCodes::M )) M_Held  = false;
 
@@ -562,6 +658,20 @@ namespace Execution
 		if (KeyPressed(_currentWindowContext, EKeyCodes::F3))
 		{
 			ActionsToComplete.AddToQueue(SetPolyModeDelegate, DGL::EFace::Front_and_Back, DGL::ERenderMode::Fill);
+		}
+		
+		if (KeyPressed(_currentWindowContext, EKeyCodes::F4) && not F4_Held)
+		{
+			ActionsToComplete.AddToQueue(ToggleModelRotationDelegate);
+
+			F4_Held = true;
+		}
+
+		if (KeyPressed(_currentWindowContext, EKeyCodes::F5) && not F5_Held)
+		{
+			ActionsToComplete.AddToQueue(ToggleLightOrbitDelegate);
+
+			F5_Held = true;
 		}
 
 		if (CursorOff)
@@ -636,7 +746,15 @@ namespace Execution
 
 		UpdateScreenspace();
 
-		Light.Update(gFloat(PhysicsDelta));
+		if (OrbitLight)
+		{
+			Light.Update(gFloat(PhysicsDelta));
+		}
+
+		if (RotateObj)
+		{
+			ObjectToView.Rotate(-1.0f * gFloat(PhysicsDelta), EAxis::Y);
+		}
 
 		ObjectToView.Update();
 
