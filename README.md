@@ -1,4 +1,4 @@
-# Ducktaped_GL
+# Ducttaped_GL
 An opengl glfw/glm/glew wrapper library made for FIU Principles of Computer Graphics class
 
 
