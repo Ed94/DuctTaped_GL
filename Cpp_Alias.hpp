@@ -74,3 +74,8 @@ using std::thread;
 using std::tuple;
 
 using std::type_index;
+
+using std::vector;
+
+
+void DoNothing() {};

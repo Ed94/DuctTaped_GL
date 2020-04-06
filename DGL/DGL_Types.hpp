@@ -87,11 +87,12 @@ namespace DGL
 	
 	struct Vec3Int
 	{
-		union
-		{
 			gUInt vec[3];
-			gUInt x, y, z;
-		};
+		//union
+		//{
+			//gUInt vec[3];
+			//gUInt x, y, z;
+		//};
 	};
 
 	//using Vec3Int    = Generic::Vector3< gUInt  >;
@@ -110,6 +111,11 @@ namespace DGL
 
 
 	// DGL
+
+	using Face = Vec3Int;
+	
+	using FaceList = std::vector<Face>;
+
 
 	using VecColor = Vector3;
 

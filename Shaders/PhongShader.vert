@@ -1,8 +1,12 @@
 #version 330 core
 
+
+
 #define VertexIndex  0
 #define NormalIndex  1
 #define TextureIndex 2
+
+
 
 layout (location = VertexIndex ) in vec3 VertPosition;
 layout (location = NormalIndex ) in vec3 VertNormal  ;

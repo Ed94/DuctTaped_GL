@@ -212,6 +212,7 @@ namespace DGL
 			rotation (Vector3(0.0f)   ),
 			scale    (Vector3(1.0f)   ),
 			model    (NULL            ),
+			he_Model (NULL            ),
 			transform(CoordSpace(1.0f))
 		{};
 
@@ -220,6 +221,18 @@ namespace DGL
 			rotation (Vector3(0.0f)   ),
 			scale    (Vector3(1.0f)   ),
 			model    (&_model         ),
+			he_Model (NULL            ),
+			transform(CoordSpace(1.0f)),
+			material (_material       )
+			//type     (_type        )
+		{};
+
+		Entity_Basic(HE_Model& _model, Material_Phong& _material) :
+			position (Vector3(0.0f)   ),
+			rotation (Vector3(0.0f)   ),
+			scale    (Vector3(1.0f)   ),
+			model    (NULL            ),
+			he_Model (&_model         ),
 			transform(CoordSpace(1.0f)),
 			material (_material       )
 			//type     (_type        )
@@ -234,7 +247,16 @@ namespace DGL
 		{
 			model = &_model;
 
+			he_Model = NULL;
+
 			return;
+		}
+
+		void SetModel(HE_Model& _model)
+		{
+			he_Model = &_model;
+
+			model = NULL;
 		}
 
 		void SetScale(gFloat _scaleBy)
@@ -295,7 +317,14 @@ namespace DGL
 		{
 			PhongShader::Use(_projection, _viewport, transform, _lightPosition,_lightColor, material);
 
-			(*model).Render();
+			if (model != NULL)
+			{
+				(*model).Render();
+			}
+			else
+			{
+				(*he_Model).Render();
+			}
 
 			PhongShader::Stop();
 
@@ -307,6 +336,7 @@ namespace DGL
 			position  = _entity.position ;
 			scale     = _entity.scale    ;
 			model     = _entity.model    ;
+			he_Model  = _entity.he_Model ;
 			transform = _entity.transform;
 			material  = _entity.material ;
 
@@ -321,6 +351,7 @@ namespace DGL
 		Vector3        rotation ;
 		Vector3        scale    ;
 		Model*         model    ;
+		HE_Model* he_Model;
 		CoordSpace     transform;
 		Material_Phong material ;
 	};

@@ -13,6 +13,9 @@ Allows the management of loading and buffer/rendering models from wavefront obj 
 #include "DGL_Types.hpp"
 #include "DGL_Space.hpp"
 
+// OpenMesh
+#include "OMesh/OMeshInterface.hpp"
+
 // Non-Standard C++
 #include "Cpp_Alias.hpp"
 
@@ -69,17 +72,6 @@ namespace DGL
 		ComponentList comp;
 	};
 
-
-
-	struct Face
-	{
-		Vec3Int Vertexes;
-	};
-
-	using FaceList = std::vector<Face>;
-
-
-
 	struct FaceGenerator
 	{
 		using ComponentList = std::vector< gUInt>;
@@ -107,7 +99,7 @@ namespace DGL
 
 			for (int index = 0; index < 3; index++)
 			{
-				generated.Vertexes.vec[index] = vertIndexes[index];
+				generated.vec[index] = vertIndexes[index];
 
 				if (index < 2)
 				{
@@ -146,9 +138,9 @@ namespace DGL
 
 			for (int faceIndex = 0; faceIndex < faces.size(); faceIndex++)
 			{
-				int vertexIndex1 = faces[faceIndex].Vertexes.vec[0],
-					vertexIndex2 = faces[faceIndex].Vertexes.vec[1],
-					vertexIndex3 = faces[faceIndex].Vertexes.vec[2] ; 
+				int vertexIndex1 = faces[faceIndex].vec[0],
+					vertexIndex2 = faces[faceIndex].vec[1],
+					vertexIndex3 = faces[faceIndex].vec[2] ; 
 
 					Vector3 vert1 = verticies[vertexIndex1],
 					        vert2 = verticies[vertexIndex2],
@@ -469,5 +461,126 @@ namespace DGL
 			UVList     textureUVs;
 			FaceList   faces     ;
 			VIndexList indicies  ; 
+	};
+
+	class HE_Model
+	{
+		 using HE_Mesh = OMeshInterface::OMesh_HE;
+		 
+	public:
+		HE_Model(const string& _filePath) :
+			loaded         (false    ),
+			vertexArrayID  (-1        ),    
+			vertexBufferID (-1        ),
+			normalBuffferID(-1        ),
+			textureBufferID(-1        ),
+			elementBufferID(-1        ),
+			filePath       (_filePath),
+			mesh           ()
+		{}
+
+		void Buffer()
+		{
+			// Generate buffers
+
+			GenerateVertexBuffers(vertexArrayID  , 1);
+			GenerateBuffers      (vertexBufferID , 1);
+			GenerateBuffers      (normalBuffferID, 1);
+			GenerateBuffers      (elementBufferID, 1);
+
+			BindVertexArray(vertexArrayID);
+
+			// Vertex Position Buffering
+
+			BindBuffer(EBufferTarget::VertexAttributes, vertexBufferID);
+
+			const VertexList& verts = mesh.GetVerticies();
+
+			BufferData(verts[0], gSize(verts.size() * sizeof(Vector3)), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
+
+			FormatVertexAttributes<Vector3>(0, EDataType::Float, ZeroOffset(), 3, false);
+
+			EnableVertexAttributeArray(0);
+
+			// Normal Buffering
+
+			BindBuffer(EBufferTarget::VertexAttributes, normalBuffferID);
+
+			const VertexList& normals = mesh.GetFaceNormals();
+
+			BufferData(normals[0], gSize(normals.size() * sizeof(Vector3)), EBufferTarget::VertexAttributes, EBufferUsage::StaticDraw);
+
+			FormatVertexAttributes<Vector3>(1, EDataType::Float, ZeroOffset(), 3, false);
+
+			EnableVertexAttributeArray(1);
+
+			// Element Buffering
+
+			const FaceList& faces = mesh.GetFaces();
+
+			BindBuffer(EBufferTarget::VertexIndices, elementBufferID);
+
+			BufferData(faces[0], gSize(faces.size() * sizeof(Face)), EBufferTarget::VertexIndices, EBufferUsage::StaticDraw);
+
+			UnbindVertexArray();   // Unbind vertex array.
+		}
+
+		void Load()
+		{
+			mesh.Load(filePath);
+
+			Buffer();
+		}
+
+		bool Ready()
+		{
+			return loaded;
+		}
+
+		void Render()
+		{
+			BindVertexArray(vertexArrayID);
+
+
+			gInt SizeRef; GetBufferParameterIV(EBufferTarget::VertexIndices, EBufferParam::Size, SizeRef); SizeRef /= sizeof(gUInt);
+
+
+			DrawElements(EPrimitives::Triangles, SizeRef, EDataType::UnsignedInt, ZeroOffset());
+
+
+			UnbindVertexArray();
+		}
+
+		HE_Model& operator= (const HE_Model& _model)
+		{
+			loaded = _model.loaded;
+
+			vertexArrayID   = _model.vertexArrayID  ;
+			vertexBufferID  = _model.vertexBufferID ;
+			normalBuffferID = _model.normalBuffferID;
+			textureBufferID = _model.textureBufferID;
+			elementBufferID = _model.elementBufferID;
+
+			filePath = _model.filePath;
+
+			mesh = _model.mesh;
+
+			return *this;
+		}
+
+
+	private:
+
+		bool loaded;
+
+		ID<VertexArray  > vertexArrayID  ;
+		ID<VertexBuffer > vertexBufferID ;
+		ID<NormalBuffer > normalBuffferID;
+		ID<TextureBuffer> textureBufferID;
+		ID<ElementBuffer> elementBufferID;
+
+		string filePath;
+
+		HE_Mesh mesh;
 	};
 };
