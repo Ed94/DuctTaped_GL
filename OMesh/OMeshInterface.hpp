@@ -1,3 +1,11 @@
+/*
+Title : Assignment 2 Execution
+Author: Edward R. Gonzalez
+
+Description:
+Provides a OMesh_HE object interface to make it easier to interact with the Open Mesh library.
+*/
+
 #pragma once
 
 #include <math.h>

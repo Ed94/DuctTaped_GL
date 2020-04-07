@@ -1,7 +1,12 @@
+/*
+Title : Assignment 2 Execution
+Author: Edward R. Gonzalez
+
+Description:
+Uses the OMeshInterface with the VerifyMesh function to complete the mesh verification based on the requirements listed in the pdf.
+*/
+
 #pragma once
-
-
-
 
 #include "DGL/DGL.hpp"
 
@@ -58,7 +63,7 @@ namespace Execution
 		}
 		else
 		{
-			cout << _filePathForMesh << " is invalid." << endl << endl;;
+			cout << _filePathForMesh << " is invalid." << endl << endl;
 		}
 	}
 
