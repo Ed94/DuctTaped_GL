@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.h>
+
 // DGL
 #include "DGL/DGL_Types.hpp"
 
@@ -46,10 +48,14 @@ namespace OMeshInterface
 		using FaceHandles     = vector<FaceHandle    >;
 		using HalfEdgeHandles = vector<HalfEdgeHandle>;
 		using VertHandles     = vector<VertexHandle  >;
-	}
 
+		using std::atan;
+	}
 	
-	
+	double PI() 
+	{ 
+		return std::atan(1) * 4; 
+	}
 
 	class OMesh_HE
 	{
@@ -88,7 +94,7 @@ namespace OMeshInterface
 			GenerateVertexList      ();
 			GenerateVertexNormalList();
 			GenerateFaceNormalList  ();
-			GenerateVertexEdgeList  ();
+			GenerateEdgeList        ();
 			GenerateFaceList        ();
 
 			return;
@@ -104,7 +110,7 @@ namespace OMeshInterface
 			return vertNormals;
 		}
 
-		const EdgeList& GetVertEdges() const 
+		const EdgeList& GetEdges() const 
 		{
 			return edges;
 		}
@@ -118,6 +124,62 @@ namespace OMeshInterface
 		{
 			return faceNormals;
 		}
+
+		const int GetGenus() const 
+		{
+
+		}
+
+
+		void GetInteriorAngle()
+		{
+
+		}
+
+
+		const double GetGuassianCurvature_Discretely()
+		{
+			double result = 2 * PI();
+
+			using FAngleList = vector<float>;
+			using AngleList  = vector<double>;
+
+			AngleList vertAngleSumList;
+
+			for (HE_Mesh::VertexIter vertElem = oMeshObj.vertices_begin(); vertElem != oMeshObj.vertices_end(); vertElem++)
+			{
+				using OutgoingEdgeIter = HE_Mesh::VertexOHalfedgeIter;
+
+				FAngleList interiorAngles;
+
+				double sumOfAngles = 0.0;
+
+				for (OutgoingEdgeIter oEdgeElem = oMeshObj.voh_begin(*vertElem); oEdgeElem != oMeshObj.voh_end(*vertElem); oEdgeElem++)
+				{
+					/*OutgoingEdgeIter next = oEdgeElem; next++;
+
+					if (next == oMeshObj.voh_end(*vertElem))
+					{
+						continue;
+					}*/
+
+					float angle = oMeshObj.calc_sector_angle(*oEdgeElem);
+
+					angle *= PI() / 180.0;   // To Radians
+
+					interiorAngles.push_back(angle);
+
+					sumOfAngles += angle;
+				}
+
+				vertAngleSumList.push_back(sumOfAngles);
+
+				result -= sumOfAngles;
+			}
+
+			return result;
+		}
+
 
 	protected:
 
@@ -161,11 +223,11 @@ namespace OMeshInterface
 			}
 		}
 
-		void GenerateVertexEdgeList()
+		void GenerateEdgeList()
 		{
 			using EdgeIter = HE_Mesh::EdgeIter;
 
-			for (EdgeIter element = oMeshObj.edges_begin(); element != oMeshObj.edges_begin(); element++)
+			for (EdgeIter element = oMeshObj.edges_begin(); element != oMeshObj.edges_end(); element++)
 			{
 				using OEdge = decltype(oMeshObj.edge(*element));
 
@@ -203,6 +265,10 @@ namespace OMeshInterface
 		VertexList verticies  ;
 		VertexList vertNormals;
 		VertexList faceNormals;
+
+		HalfEdgeHandles LeftHandles ;
+		HalfEdgeHandles RightHandles;
+
 		EdgeList   edges      ;
 		FaceList   faces      ;
 	};
