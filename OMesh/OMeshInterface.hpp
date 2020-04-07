@@ -139,9 +139,9 @@ namespace OMeshInterface
 
 		const double GetGuassianCurvature_Discretely()
 		{
-			double result = 2 * PI();
+			double result = 0;
 
-			using FAngleList = vector<float>;
+			using FAngleList = vector<float >;
 			using AngleList  = vector<double>;
 
 			AngleList vertAngleSumList;
@@ -149,6 +149,8 @@ namespace OMeshInterface
 			for (HE_Mesh::VertexIter vertElem = oMeshObj.vertices_begin(); vertElem != oMeshObj.vertices_end(); vertElem++)
 			{
 				using OutgoingEdgeIter = HE_Mesh::VertexOHalfedgeIter;
+
+				double vertResult = 2 * PI();
 
 				FAngleList interiorAngles;
 
@@ -165,7 +167,7 @@ namespace OMeshInterface
 
 					float angle = oMeshObj.calc_sector_angle(*oEdgeElem);
 
-					angle *= PI() / 180.0;   // To Radians
+					//angle *= PI() / 180.0;   // To Radians
 
 					interiorAngles.push_back(angle);
 
@@ -174,7 +176,9 @@ namespace OMeshInterface
 
 				vertAngleSumList.push_back(sumOfAngles);
 
-				result -= sumOfAngles;
+				vertResult -= sumOfAngles;
+
+				result += vertResult;
 			}
 
 			return result;
